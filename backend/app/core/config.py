@@ -1,0 +1,42 @@
+"""Application configuration loaded from environment variables."""
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Central application settings.
+
+    Values are read from environment variables (or a local .env file).
+    Defaults are chosen so the app boots with zero configuration for local dev.
+    """
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    # Project metadata
+    app_name: str = "MyDealFinder"
+    app_version: str = "0.1.0"
+    debug: bool = False
+
+    # Database. Defaults to a local SQLite file; override with a Postgres DSN in prod.
+    # e.g. postgresql+asyncpg://user:pass@db:5432/mydealfinder
+    database_url: str = "sqlite+aiosqlite:///./mydealfinder.db"
+
+    # Redis (optional). When unset, caching is silently disabled.
+    redis_url: str | None = None
+
+    # CORS origins allowed to call the API (comma-separated env var).
+    cors_origins: str = "http://localhost:3000"
+
+    # Seed the database with demo data on startup.
+    seed_on_startup: bool = True
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """Return a cached Settings instance."""
+    return Settings()
