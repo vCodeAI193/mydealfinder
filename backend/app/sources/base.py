@@ -17,6 +17,9 @@ class SourceOffer:
     currency: str
     url: str
     in_stock: bool = True
+    shipping_cost: float = 0.0  # F011
+    coupon_code: str | None = None  # F015
+    coupon_savings: float = 0.0  # F015
     brand: str | None = None
     category: str | None = None
     description: str | None = None

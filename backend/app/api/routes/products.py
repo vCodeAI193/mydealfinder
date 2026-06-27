@@ -22,10 +22,25 @@ HistoryDays = Query(
 )
 
 
+Currency = Query(None, description="Convert prices to this currency, e.g. EUR (F012)")
+Pinned = Query(None, description="Comma-separated sources to pin first (F013)")
+
+
+def _parse_pinned(pinned: str | None) -> list[str]:
+    return [s.strip() for s in pinned.split(",")] if pinned else []
+
+
 @router.get("/{product_id}", response_model=ProductDetail, summary="Get a product with all offers")
-async def get_product(product_id: int, service: PriceServiceDep) -> ProductDetail:
+async def get_product(
+    product_id: int,
+    service: PriceServiceDep,
+    currency: str | None = Currency,
+    pinned: str | None = Pinned,
+) -> ProductDetail:
     try:
-        return await service.get_product_detail(product_id)
+        return await service.get_product_detail(
+            product_id, currency=currency, pinned=_parse_pinned(pinned)
+        )
     except ProductNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -35,9 +50,16 @@ async def get_product(product_id: int, service: PriceServiceDep) -> ProductDetai
     response_model=list[OfferOut],
     summary="Compare prices across sources (cheapest first)",
 )
-async def get_offers(product_id: int, service: PriceServiceDep) -> list[OfferOut]:
+async def get_offers(
+    product_id: int,
+    service: PriceServiceDep,
+    currency: str | None = Currency,
+    pinned: str | None = Pinned,
+) -> list[OfferOut]:
     try:
-        detail = await service.get_product_detail(product_id)
+        detail = await service.get_product_detail(
+            product_id, currency=currency, pinned=_parse_pinned(pinned)
+        )
     except ProductNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return detail.offers

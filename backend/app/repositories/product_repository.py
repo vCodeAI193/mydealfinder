@@ -58,6 +58,9 @@ class ProductRepository:
         price: float,
         currency: str,
         in_stock: bool,
+        shipping_cost: float = 0.0,
+        coupon_code: str | None = None,
+        coupon_savings: float = 0.0,
     ) -> Offer:
         """Update the current offer for (product, source) or create it."""
         result = await self._session.execute(
@@ -72,6 +75,9 @@ class ProductRepository:
                 price=price,
                 currency=currency,
                 in_stock=in_stock,
+                shipping_cost=shipping_cost,
+                coupon_code=coupon_code,
+                coupon_savings=coupon_savings,
             )
             self._session.add(offer)
         else:
@@ -79,19 +85,27 @@ class ProductRepository:
             offer.price = price
             offer.currency = currency
             offer.in_stock = in_stock
+            offer.shipping_cost = shipping_cost
+            offer.coupon_code = coupon_code
+            offer.coupon_savings = coupon_savings
         await self._session.flush()
         return offer
 
-    async def best_offer(self, product_id: int, in_stock_only: bool = True) -> Offer | None:
+    async def best_offer(
+        self, product_id: int, in_stock_only: bool = True, by_total: bool = False
+    ) -> Offer | None:
         """Return the cheapest offer for a product, if any.
 
         By default only in-stock offers are considered (F010); pass
-        ``in_stock_only=False`` to include out-of-stock offers in the ranking.
+        ``in_stock_only=False`` to include out-of-stock offers. When ``by_total``
+        is set, offers are ranked by the shipping-inclusive total price (F011)
+        instead of the sticker price.
         """
         query = select(Offer).where(Offer.product_id == product_id)
         if in_stock_only:
             query = query.where(Offer.in_stock.is_(True))
-        result = await self._session.execute(query.order_by(Offer.price.asc()).limit(1))
+        order = (Offer.price + Offer.shipping_cost) if by_total else Offer.price
+        result = await self._session.execute(query.order_by(order.asc()).limit(1))
         return result.scalar_one_or_none()
 
     async def offer_count(self, product_id: int) -> int:

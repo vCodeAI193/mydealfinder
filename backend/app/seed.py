@@ -67,6 +67,9 @@ async def seed_database(session: AsyncSession) -> bool:
                 price=offer.price,
                 currency=offer.currency,
                 in_stock=offer.in_stock,
+                shipping_cost=offer.shipping_cost,
+                coupon_code=offer.coupon_code,
+                coupon_savings=offer.coupon_savings,
             )
 
             # Backfilled history: oldest -> newest, ending at the current price.

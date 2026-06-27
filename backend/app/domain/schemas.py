@@ -13,8 +13,14 @@ class OfferOut(BaseModel):
     source: str
     url: str
     price: float
+    shipping_cost: float = 0.0  # F011
+    total_price: float  # price + shipping (F011)
     currency: str
     in_stock: bool
+    source_rating: float | None = None  # F014
+    coupon_code: str | None = None  # F015
+    coupon_savings: float = 0.0  # F015
+    pinned: bool = False  # F013
     updated_at: datetime
 
 

@@ -1,7 +1,8 @@
 """Product detail, comparison, and price-history business logic."""
 from datetime import datetime, timedelta, timezone
 
-from app.domain.models import PricePoint
+from app.core.config import get_settings
+from app.domain.models import Offer, PricePoint
 from app.domain.schemas import (
     AlertSuggestion,
     OfferOut,
@@ -12,6 +13,8 @@ from app.domain.schemas import (
 )
 from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
+from app.services import currency as fx
+from app.sources.metadata import rating_for
 
 
 class ProductNotFoundError(Exception):
@@ -30,14 +33,37 @@ class PriceService:
         self._products = product_repo
         self._prices = price_repo
 
-    async def get_product_detail(self, product_id: int) -> ProductDetail:
-        """Return a product with every current offer, cheapest first."""
+    async def get_product_detail(
+        self,
+        product_id: int,
+        currency: str | None = None,
+        pinned: list[str] | None = None,
+    ) -> ProductDetail:
+        """Return a product with every current offer.
+
+        Offers are ordered with pinned sources first (F013), then by the
+        ranking price — the shipping-inclusive total when the `true_price` flag
+        is on (F011), otherwise the sticker price. Prices are converted to
+        `currency` for display (F012), and ratings/coupons are attached when
+        their flags are enabled (F014/F015)."""
         product = await self._products.get_with_offers(product_id)
         if product is None:
             raise ProductNotFoundError(f"Product {product_id} not found")
 
-        offers = sorted(product.offers, key=lambda o: o.price)
-        best = offers[0] if offers else None
+        settings = get_settings()
+        pinned_set = {s.lower() for s in (pinned or [])}
+        target_ccy = (currency or "USD").upper()
+
+        out_offers = [
+            self._build_offer(o, target_ccy, pinned_set, settings)
+            for o in product.offers
+        ]
+        rank = (lambda o: o.total_price) if settings.true_price else (lambda o: o.price)
+        # Pinned first (F013), then cheapest by the active ranking price.
+        out_offers.sort(key=lambda o: (not o.pinned, rank(o)))
+
+        # Best price is the cheapest by ranking, ignoring pinning.
+        best = min(out_offers, key=rank) if out_offers else None
         return ProductDetail(
             id=product.id,
             slug=product.slug,
@@ -46,10 +72,31 @@ class PriceService:
             category=product.category,
             image_url=product.image_url,
             description=product.description,
-            best_price=best.price if best else None,
-            currency=best.currency if best else None,
-            offer_count=len(offers),
-            offers=[OfferOut.model_validate(o) for o in offers],
+            best_price=rank(best) if best else None,
+            currency=target_ccy if best else None,
+            offer_count=len(out_offers),
+            offers=out_offers,
+        )
+
+    @staticmethod
+    def _build_offer(offer: Offer, target_ccy: str, pinned: set[str], settings) -> OfferOut:
+        """Map an ORM offer to an OfferOut, applying conversion & display flags."""
+        def conv(amount: float) -> float:
+            return fx.convert(amount, offer.currency, target_ccy)
+
+        return OfferOut(
+            source=offer.source,
+            url=offer.url,
+            price=conv(offer.price),
+            shipping_cost=conv(offer.shipping_cost or 0.0),
+            total_price=conv(offer.total_price),
+            currency=target_ccy,
+            in_stock=offer.in_stock,
+            source_rating=rating_for(offer.source) if settings.show_source_ratings else None,
+            coupon_code=offer.coupon_code if settings.show_coupons else None,
+            coupon_savings=conv(offer.coupon_savings or 0.0) if settings.show_coupons else 0.0,
+            pinned=offer.source.lower() in pinned,
+            updated_at=offer.updated_at,
         )
 
     async def get_price_history(

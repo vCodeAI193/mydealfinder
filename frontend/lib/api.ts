@@ -20,8 +20,14 @@ export interface Offer {
   source: string;
   url: string;
   price: number;
+  shipping_cost: number;
+  total_price: number;
   currency: string;
   in_stock: boolean;
+  source_rating: number | null;
+  coupon_code: string | null;
+  coupon_savings: number;
+  pinned: boolean;
   updated_at: string;
 }
 
@@ -71,6 +77,7 @@ export interface SearchOptions {
   max_price?: number;
   sort?: "price_asc" | "price_desc" | "name";
   in_stock_only?: boolean;
+  currency?: string;
   page?: number;
   page_size?: number;
 }
@@ -78,6 +85,9 @@ export interface SearchOptions {
 export interface FeatureFlags {
   fuzzy_search: boolean;
   enabled_sources: string[];
+  true_price: boolean;
+  show_source_ratings: boolean;
+  show_coupons: boolean;
 }
 
 export interface Alert {
@@ -144,6 +154,7 @@ function buildSearchQuery(q: string, opts: SearchOptions = {}): string {
   if (opts.max_price != null) params.set("max_price", String(opts.max_price));
   if (opts.sort) params.set("sort", opts.sort);
   if (opts.in_stock_only != null) params.set("in_stock_only", String(opts.in_stock_only));
+  if (opts.currency) params.set("currency", opts.currency);
   if (opts.page != null) params.set("page", String(opts.page));
   if (opts.page_size != null) params.set("page_size", String(opts.page_size));
   return params.toString();
@@ -153,7 +164,13 @@ export const api = {
   search: (q: string, opts: SearchOptions = {}) =>
     request<SearchResponse>(`/search?${buildSearchQuery(q, opts)}`),
   config: () => request<{ feature_flags: FeatureFlags }>(`/config`),
-  product: (id: number) => request<ProductDetail>(`/products/${id}`),
+  product: (id: number, opts: { currency?: string; pinned?: string[] } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.currency) params.set("currency", opts.currency);
+    if (opts.pinned && opts.pinned.length) params.set("pinned", opts.pinned.join(","));
+    const qs = params.toString();
+    return request<ProductDetail>(`/products/${id}${qs ? `?${qs}` : ""}`);
+  },
   history: (id: number, days?: number | null) =>
     request<PriceHistory>(`/products/${id}/history${days ? `?days=${days}` : ""}`),
   analytics: (id: number, days?: number | null) =>

@@ -18,6 +18,7 @@ async def search(
     max_price: float | None = Query(None, ge=0, description="Maximum best price (F004)"),
     sort: str = Query("price_asc", description=f"Sort order (F005): one of {', '.join(SORT_OPTIONS)}"),
     in_stock_only: bool = Query(True, description="Exclude out-of-stock offers (F010)"),
+    currency: str | None = Query(None, description="Convert best prices to this currency (F012)"),
     page: int = Query(1, ge=1, description="Page number (F006)"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page (F006)"),
 ) -> SearchResponse:
@@ -30,6 +31,7 @@ async def search(
         max_price=max_price,
         sort=sort if sort in SORT_OPTIONS else "price_asc",
         in_stock_only=in_stock_only,
+        currency=currency,
         page=page,
         page_size=page_size,
     )

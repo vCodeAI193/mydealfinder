@@ -132,6 +132,9 @@ curl "http://localhost:8000/config"
 # Compare prices for a product
 curl "http://localhost:8000/products/1/offers"
 
+# Compare in another currency, pinning a source first (F012/F013)
+curl "http://localhost:8000/products/1/offers?currency=EUR&pinned=walmart"
+
 # Price history (optionally windowed to the last N days — F017)
 curl "http://localhost:8000/products/1/history?days=30"
 

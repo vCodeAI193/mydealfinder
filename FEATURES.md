@@ -50,11 +50,11 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
 | F010 | Include / exclude out-of-stock offers | UP | P1 | S | ☑ | Toggle in the comparison table |
-| F011 | Shipping-aware "true price" | FF | P1 | M | ☐ | Add shipping to offer total before ranking |
-| F012 | Currency-converted display | UP | P2 | M | ☐ | Convert all offers to a chosen currency |
-| F013 | Preferred / pinned sources | UP | P2 | S | ☐ | Always surface chosen retailers first |
-| F014 | Per-source trust / rating badges | FF | P3 | S | ☐ | Reliability badge per source |
-| F015 | Coupon / voucher code display | FF | P2 | M | ☐ | Show applicable discount codes |
+| F011 | Shipping-aware "true price" | FF | P1 | M | ☑ | Add shipping to offer total before ranking |
+| F012 | Currency-converted display | UP | P2 | M | ☑ | Convert all offers to a chosen currency |
+| F013 | Preferred / pinned sources | UP | P2 | S | ☑ | Always surface chosen retailers first |
+| F014 | Per-source trust / rating badges | FF | P3 | S | ☑ | Reliability badge per source |
+| F015 | Coupon / voucher code display | FF | P2 | M | ☑ | Show applicable discount codes |
 | F016 | Tax & warranty cost notes | FF | P3 | M | ☐ | Total-cost-of-ownership annotations |
 
 ## 3. Price History & Analytics
@@ -205,12 +205,12 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 19 / 100 complete.**
+**Overall: 24 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
 | 1. Search & Discovery | F001–F009 | 9 | 5 |
-| 2. Price Comparison | F010–F016 | 7 | 1 |
+| 2. Price Comparison | F010–F016 | 7 | 6 |
 | 3. Price History & Analytics | F017–F024 | 8 | 6 |
 | 4. Alerts & Notifications | F025–F034 | 10 | 5 |
 | 5. Accounts & Personalization | F035–F043 | 9 | 0 |
@@ -223,11 +223,13 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 12. Performance & Caching | F085–F088 | 4 | 0 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **19** |
+| **Total** | **F001–F100** | **100** | **24** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
-F010 (out-of-stock toggle), F017 (history time range), F018 (per-source toggle),
+F010 (out-of-stock toggle), F011 (shipping "true price"), F012 (currency conversion),
+F013 (pinned sources), F014 (source ratings), F015 (coupons),
+F017 (history time range), F018 (per-source toggle),
 F019 (min/max/avg markers), F020 (deal score), F021 (price-vs-avg badge),
 F023 (CSV/JSON export), F025 (multiple alerts/limit), F026 (percentage-drop alerts),
 F032 (snooze/pause), F033 (recurring alerts), F034 (threshold suggestion),

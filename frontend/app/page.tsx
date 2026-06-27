@@ -8,6 +8,7 @@ import {
   type ProductSummary,
   type SearchOptions,
 } from "@/lib/api";
+import { getCurrency, onPrefsChange } from "@/lib/prefs";
 
 const SUGGESTIONS = ["headphones", "iphone", "laptop", "switch", "kindle"];
 const PAGE_SIZE = 12;
@@ -50,6 +51,7 @@ export default function HomePage() {
       min_price: f.minPrice ? Number(f.minPrice) : undefined,
       max_price: f.maxPrice ? Number(f.maxPrice) : undefined,
       in_stock_only: f.inStockOnly,
+      currency: getCurrency(),
       page: p,
       page_size: PAGE_SIZE,
     };
@@ -97,6 +99,13 @@ export default function HomePage() {
     if (submitted) run(submitted, filters, 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
+
+  // Re-run the current search when the display currency changes (F012).
+  useEffect(
+    () => onPrefsChange(() => submitted && run(submitted, filters, page)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [submitted, filters, page]
+  );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 

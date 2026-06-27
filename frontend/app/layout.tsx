@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import CurrencySelect from "@/components/CurrencySelect";
 import "./globals.css";
 
 // Apply the saved theme before paint to avoid a flash of the wrong theme.
@@ -29,7 +30,8 @@ export default function RootLayout({
               My<span>Deal</span>Finder
             </Link>
             <span className="tagline">Compare prices · track history · get alerted</span>
-            <div style={{ marginLeft: "auto" }}>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              <CurrencySelect />
               <ThemeToggle />
             </div>
           </header>

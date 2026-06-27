@@ -12,6 +12,7 @@ import {
 import PriceChart from "@/components/PriceChart";
 import AlertForm from "@/components/AlertForm";
 import AlertManager from "@/components/AlertManager";
+import { getCurrency, getPinnedSources, onPrefsChange, togglePinnedSource } from "@/lib/prefs";
 
 // History windows offered in the UI (F017). null = all history.
 const RANGES: { label: string; days: number | null }[] = [
@@ -30,15 +31,20 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [chartMode, setChartMode] = useState<"best" | "source">("best");
   const [error, setError] = useState<string | null>(null);
 
-  // Load the product once.
+  // Load the product, honoring the chosen currency (F012) & pinned sources (F013).
+  // Re-fetch whenever those preferences change.
   useEffect(() => {
     let active = true;
-    api
-      .product(productId)
-      .then((p) => active && setProduct(p))
-      .catch((e) => active && setError(e instanceof Error ? e.message : "Failed to load product"));
+    const load = () =>
+      api
+        .product(productId, { currency: getCurrency(), pinned: getPinnedSources() })
+        .then((p) => active && setProduct(p))
+        .catch((e) => active && setError(e instanceof Error ? e.message : "Failed to load product"));
+    load();
+    const unsubscribe = onPrefsChange(load);
     return () => {
       active = false;
+      unsubscribe();
     };
   }, [productId]);
 
@@ -114,27 +120,61 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <table>
           <thead>
             <tr>
+              <th></th>
               <th>Source</th>
               <th>Price</th>
-              <th>Availability</th>
-              <th></th>
+              <th>Shipping</th>
+              <th>Total</th>
+              <th>Offer</th>
             </tr>
           </thead>
           <tbody>
             {product.offers.map((o, i) => (
               <tr key={o.source} className={i === 0 ? "best" : ""}>
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => togglePinnedSource(o.source)}
+                    title={o.pinned ? "Unpin source" : "Pin source to the top"}
+                    aria-label={o.pinned ? "Unpin source" : "Pin source"}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 16,
+                      color: o.pinned ? "var(--accent)" : "var(--muted)",
+                      padding: 0,
+                    }}
+                  >
+                    {o.pinned ? "★" : "☆"}
+                  </button>
+                </td>
                 <td style={{ textTransform: "capitalize" }}>
                   {o.source}
-                  {i === 0 && (
-                    <span className="badge" style={{ marginLeft: 8 }}>
-                      cheapest
+                  {i === 0 && <span className="badge" style={{ marginLeft: 8 }}>cheapest</span>}
+                  {o.source_rating != null && (
+                    <span className="badge" style={{ marginLeft: 6 }} title="Source trust rating">
+                      ★ {o.source_rating.toFixed(1)}
                     </span>
                   )}
+                  {o.coupon_code && (
+                    <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+                      🎟 {o.coupon_code} (−{formatPrice(o.coupon_savings, o.currency)})
+                    </div>
+                  )}
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    {o.in_stock ? "In stock" : "Out of stock"}
+                  </div>
                 </td>
                 <td className="price" style={{ fontSize: 16 }}>
                   {formatPrice(o.price, o.currency)}
                 </td>
-                <td className="muted">{o.in_stock ? "In stock" : "Out of stock"}</td>
+                <td className="muted">
+                  {o.shipping_cost > 0 ? formatPrice(o.shipping_cost, o.currency) : "Free"}
+                </td>
+                <td className="price" style={{ fontSize: 16 }}>
+                  {formatPrice(o.total_price, o.currency)}
+                </td>
                 <td>
                   <a href={o.url} target="_blank" rel="noreferrer">
                     View deal →
@@ -144,6 +184,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             ))}
           </tbody>
         </table>
+        <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+          ★ pin a source to keep it on top. Totals include shipping.
+        </p>
       </section>
 
       <section className="panel">

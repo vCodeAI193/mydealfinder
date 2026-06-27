@@ -2,10 +2,12 @@
 import asyncio
 from dataclasses import dataclass
 
+from app.core.config import get_settings
 from app.domain.models import Product
 from app.domain.schemas import ProductSummary, SearchResponse
 from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
+from app.services import currency as fx
 from app.sources.base import PriceSource, SourceOffer
 
 # Supported result orderings (F005).
@@ -26,6 +28,7 @@ class SearchOptions:
     max_price: float | None = None  # F004
     sort: str = "price_asc"  # F005
     in_stock_only: bool = True  # F010
+    currency: str | None = None  # F012
     page: int = 1  # F006
     page_size: int = 20  # F006
 
@@ -63,7 +66,9 @@ class SearchService:
         summaries: list[ProductSummary] = []
         for slug, source_offers in grouped.items():
             product = await self._persist_product_and_offers(slug, source_offers)
-            summaries.append(await self._summarize(product, options.in_stock_only))
+            summaries.append(
+                await self._summarize(product, options.in_stock_only, options.currency)
+            )
 
         filtered = self._apply_filters(summaries, options)
         self._sort(filtered, options.sort)
@@ -143,6 +148,9 @@ class SearchService:
                 price=offer.price,
                 currency=offer.currency,
                 in_stock=offer.in_stock,
+                shipping_cost=offer.shipping_cost,
+                coupon_code=offer.coupon_code,
+                coupon_savings=offer.coupon_savings,
             )
             # Every observation is recorded so the history grows over time.
             await self._prices.add_point(
@@ -153,9 +161,20 @@ class SearchService:
             )
         return product
 
-    async def _summarize(self, product: Product, in_stock_only: bool = True) -> ProductSummary:
-        best = await self._products.best_offer(product.id, in_stock_only=in_stock_only)
+    async def _summarize(
+        self, product: Product, in_stock_only: bool = True, currency: str | None = None
+    ) -> ProductSummary:
+        settings = get_settings()
+        best = await self._products.best_offer(
+            product.id, in_stock_only=in_stock_only, by_total=settings.true_price
+        )
         count = await self._products.offer_count(product.id)
+
+        best_price = None
+        target_ccy = (currency or "USD").upper()
+        if best is not None:
+            raw = best.total_price if settings.true_price else best.price
+            best_price = fx.convert(raw, best.currency, target_ccy)
         return ProductSummary(
             id=product.id,
             slug=product.slug,
@@ -163,7 +182,7 @@ class SearchService:
             brand=product.brand,
             category=product.category,
             image_url=product.image_url,
-            best_price=best.price if best else None,
-            currency=best.currency if best else None,
+            best_price=best_price,
+            currency=target_ccy if best else None,
             offer_count=count,
         )

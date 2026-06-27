@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     enabled_sources: str = "amazon,ebay,walmart"
     # F025: max open alerts per (email, product). 0 means unlimited.
     max_alerts_per_product: int = 0
+    # F011: rank/compare offers by shipping-inclusive total price.
+    true_price: bool = False
+    # F014: surface per-source trust ratings.
+    show_source_ratings: bool = False
+    # F015: surface coupon/voucher codes on offers.
+    show_coupons: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -53,6 +59,9 @@ class Settings(BaseSettings):
         return {
             "fuzzy_search": self.fuzzy_search,
             "enabled_sources": self.enabled_source_list,
+            "true_price": self.true_price,
+            "show_source_ratings": self.show_source_ratings,
+            "show_coupons": self.show_coupons,
         }
 
 

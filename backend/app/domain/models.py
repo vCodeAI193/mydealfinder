@@ -57,6 +57,9 @@ class Offer(Base):
     source: Mapped[str] = mapped_column(String(100), index=True)
     url: Mapped[str] = mapped_column(String(1024))
     price: Mapped[float] = mapped_column(Float)
+    shipping_cost: Mapped[float] = mapped_column(Float, default=0.0)  # F011
+    coupon_code: Mapped[str | None] = mapped_column(String(40), nullable=True)  # F015
+    coupon_savings: Mapped[float] = mapped_column(Float, default=0.0)  # F015
     currency: Mapped[str] = mapped_column(String(3), default="USD")
     in_stock: Mapped[bool] = mapped_column(Boolean, default=True)
     updated_at: Mapped[datetime] = mapped_column(
@@ -64,6 +67,11 @@ class Offer(Base):
     )
 
     product: Mapped[Product] = relationship(back_populates="offers")
+
+    @property
+    def total_price(self) -> float:
+        """The shipping-inclusive 'true price' used for ranking (F011)."""
+        return round(self.price + (self.shipping_cost or 0.0), 2)
 
 
 class PricePoint(Base):
