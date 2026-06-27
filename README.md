@@ -5,7 +5,8 @@ sources. Search a product, compare prices side by side, track how the price has
 moved over time, and get alerted when it drops below your target.
 
 > See [`VISION.md`](./VISION.md) for the product goals, tech-stack reasoning,
-> architecture diagram, and roadmap.
+> architecture diagram, and roadmap. See [`FEATURES.md`](./FEATURES.md) for the
+> 100-feature configurable backlog and what's already implemented.
 
 ---
 
@@ -121,6 +122,12 @@ in-memory SQLite database — no external services needed.
 ```bash
 # Search
 curl "http://localhost:8000/search?q=headphones"
+
+# Search with filters, sorting & pagination (F003–F006, F010)
+curl "http://localhost:8000/search?q=apple&brand=Apple&min_price=200&max_price=300&sort=price_desc&page=1&page_size=12"
+
+# Active feature flags (consumed by the frontend)
+curl "http://localhost:8000/config"
 
 # Compare prices for a product
 curl "http://localhost:8000/products/1/offers"

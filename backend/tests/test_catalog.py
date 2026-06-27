@@ -25,3 +25,15 @@ def test_find_items_empty_query_returns_nothing():
 
 def test_find_items_no_match():
     assert find_items("nonexistentproductxyz") == []
+
+
+def test_fuzzy_matches_typo_when_enabled():
+    # "sny" is a typo for "sony"; only matches with fuzzy on (F001).
+    assert find_items("sny") == []
+    slugs = {i.slug for i in find_items("sny", fuzzy=True)}
+    assert "sony-wh-1000xm5" in slugs
+
+
+def test_fuzzy_still_requires_reasonable_similarity():
+    # Gibberish must not match even with fuzzy enabled.
+    assert find_items("zzzzzz", fuzzy=True) == []

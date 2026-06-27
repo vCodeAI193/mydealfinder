@@ -3,6 +3,7 @@
 Each product has a base price; individual sources apply a stable multiplier so
 the same product shows different prices per source (enabling real comparison).
 """
+import difflib
 from dataclasses import dataclass
 
 
@@ -102,11 +103,30 @@ CATALOG: tuple[CatalogItem, ...] = (
 )
 
 
-def find_items(keyword: str) -> list[CatalogItem]:
+def _haystack(item: CatalogItem) -> str:
+    return " ".join((item.name.lower(), item.brand.lower(), item.category.lower(), *item.keywords))
+
+
+def _token_matches(token: str, haystack: str, fuzzy: bool) -> bool:
+    """True if `token` appears in `haystack`, optionally tolerating typos.
+
+    When `fuzzy` is on (F001) and there is no substring match, the token is
+    compared against each word in the haystack using a similarity cutoff, so
+    e.g. "sny" still matches "sony".
+    """
+    if token in haystack:
+        return True
+    if not fuzzy:
+        return False
+    return bool(difflib.get_close_matches(token, haystack.split(), n=1, cutoff=0.8))
+
+
+def find_items(keyword: str, fuzzy: bool = False) -> list[CatalogItem]:
     """Return catalog items whose name or keywords match `keyword`.
 
     Matching is case-insensitive and token-based: every whitespace-separated
-    token in the query must appear in the item's searchable text.
+    token in the query must match the item's searchable text. When `fuzzy` is
+    True, small typos are tolerated (F001).
     """
     query = keyword.strip().lower()
     if not query:
@@ -114,7 +134,7 @@ def find_items(keyword: str) -> list[CatalogItem]:
     tokens = query.split()
     matches: list[CatalogItem] = []
     for item in CATALOG:
-        haystack = " ".join((item.name.lower(), item.brand.lower(), item.category.lower(), *item.keywords))
-        if all(token in haystack for token in tokens):
+        haystack = _haystack(item)
+        if all(_token_matches(token, haystack, fuzzy) for token in tokens):
             matches.append(item)
     return matches

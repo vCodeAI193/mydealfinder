@@ -44,6 +44,12 @@ app.include_router(products.router)
 app.include_router(alerts.router)
 
 
+@app.get("/config", tags=["meta"], summary="Public client configuration & feature flags")
+async def config() -> dict[str, object]:
+    """Expose the active feature flags so the frontend can adapt its UI."""
+    return {"feature_flags": settings.feature_flags}
+
+
 @app.get("/health", tags=["meta"], summary="Health check")
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": settings.app_name, "version": settings.app_version}

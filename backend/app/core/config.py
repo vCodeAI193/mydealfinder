@@ -31,9 +31,27 @@ class Settings(BaseSettings):
     # Seed the database with demo data on startup.
     seed_on_startup: bool = True
 
+    # ── Feature flags (FF) ──────────────────────────────────────────────────
+    # F001: tolerate small typos in search queries.
+    fuzzy_search: bool = False
+    # F045: which sources to query, comma-separated. Empty means "all".
+    enabled_sources: str = "amazon,ebay,walmart"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def enabled_source_list(self) -> list[str]:
+        return [s.strip().lower() for s in self.enabled_sources.split(",") if s.strip()]
+
+    @property
+    def feature_flags(self) -> dict[str, object]:
+        """Public feature-flag state, exposed via the /config endpoint."""
+        return {
+            "fuzzy_search": self.fuzzy_search,
+            "enabled_sources": self.enabled_source_list,
+        }
 
 
 @lru_cache

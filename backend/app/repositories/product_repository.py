@@ -82,14 +82,16 @@ class ProductRepository:
         await self._session.flush()
         return offer
 
-    async def best_offer(self, product_id: int) -> Offer | None:
-        """Return the cheapest in-stock offer for a product, if any."""
-        result = await self._session.execute(
-            select(Offer)
-            .where(Offer.product_id == product_id, Offer.in_stock.is_(True))
-            .order_by(Offer.price.asc())
-            .limit(1)
-        )
+    async def best_offer(self, product_id: int, in_stock_only: bool = True) -> Offer | None:
+        """Return the cheapest offer for a product, if any.
+
+        By default only in-stock offers are considered (F010); pass
+        ``in_stock_only=False`` to include out-of-stock offers in the ranking.
+        """
+        query = select(Offer).where(Offer.product_id == product_id)
+        if in_stock_only:
+            query = query.where(Offer.in_stock.is_(True))
+        result = await self._session.execute(query.order_by(Offer.price.asc()).limit(1))
         return result.scalar_one_or_none()
 
     async def offer_count(self, product_id: int) -> int:

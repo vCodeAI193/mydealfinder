@@ -58,8 +58,10 @@ class PriceHistoryOut(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
-    count: int
-    results: list[ProductSummary]
+    count: int  # total products matching the query (before pagination)
+    page: int = 1
+    page_size: int = 20
+    results: list[ProductSummary]  # the current page of results
 
 
 class AlertCreate(BaseModel):

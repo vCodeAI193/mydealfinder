@@ -1,11 +1,33 @@
 """Search business logic: query sources, aggregate, persist, record history."""
 import asyncio
+from dataclasses import dataclass
 
 from app.domain.models import Product
 from app.domain.schemas import ProductSummary, SearchResponse
 from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
 from app.sources.base import PriceSource, SourceOffer
+
+# Supported result orderings (F005).
+SORT_OPTIONS = ("price_asc", "price_desc", "name")
+
+
+@dataclass
+class SearchOptions:
+    """User-configurable search refinements (F003–F006, F010).
+
+    All fields are optional; the defaults reproduce the original behaviour
+    (cheapest first, in-stock only, first page of 20).
+    """
+
+    category: str | None = None  # F003
+    brand: str | None = None  # F003
+    min_price: float | None = None  # F004
+    max_price: float | None = None  # F004
+    sort: str = "price_asc"  # F005
+    in_stock_only: bool = True  # F010
+    page: int = 1  # F006
+    page_size: int = 20  # F006
 
 
 class SearchService:
@@ -25,7 +47,10 @@ class SearchService:
         self._products = product_repo
         self._prices = price_repo
 
-    async def search(self, keyword: str) -> SearchResponse:
+    async def search(
+        self, keyword: str, options: SearchOptions | None = None
+    ) -> SearchResponse:
+        options = options or SearchOptions()
         offers_by_source = await self._gather_offers(keyword)
 
         # Group all source offers by the product slug so we can build one
@@ -38,12 +63,54 @@ class SearchService:
         summaries: list[ProductSummary] = []
         for slug, source_offers in grouped.items():
             product = await self._persist_product_and_offers(slug, source_offers)
-            summaries.append(await self._summarize(product))
+            summaries.append(await self._summarize(product, options.in_stock_only))
 
-        # Cheapest products first; products with no price sink to the bottom.
-        summaries.sort(key=lambda s: (s.best_price is None, s.best_price or 0.0))
+        filtered = self._apply_filters(summaries, options)
+        self._sort(filtered, options.sort)
 
-        return SearchResponse(query=keyword, count=len(summaries), results=summaries)
+        total = len(filtered)
+        page = self._paginate(filtered, options)
+
+        return SearchResponse(
+            query=keyword,
+            count=total,
+            page=options.page,
+            page_size=options.page_size,
+            results=page,
+        )
+
+    @staticmethod
+    def _apply_filters(
+        summaries: list[ProductSummary], options: SearchOptions
+    ) -> list[ProductSummary]:
+        """Filter aggregated products by category, brand, and price range."""
+        def keep(s: ProductSummary) -> bool:
+            if options.category and (s.category or "").lower() != options.category.lower():
+                return False
+            if options.brand and (s.brand or "").lower() != options.brand.lower():
+                return False
+            if options.min_price is not None and (s.best_price is None or s.best_price < options.min_price):
+                return False
+            if options.max_price is not None and (s.best_price is None or s.best_price > options.max_price):
+                return False
+            return True
+
+        return [s for s in summaries if keep(s)]
+
+    @staticmethod
+    def _sort(summaries: list[ProductSummary], sort: str) -> None:
+        """Order results in place (F005). Products without a price sink last."""
+        if sort == "name":
+            summaries.sort(key=lambda s: s.name.lower())
+        elif sort == "price_desc":
+            summaries.sort(key=lambda s: (s.best_price is None, -(s.best_price or 0.0)))
+        else:  # price_asc (default)
+            summaries.sort(key=lambda s: (s.best_price is None, s.best_price or 0.0))
+
+    @staticmethod
+    def _paginate(summaries: list[ProductSummary], options: SearchOptions) -> list[ProductSummary]:
+        start = max(options.page - 1, 0) * options.page_size
+        return summaries[start : start + options.page_size]
 
     async def _gather_offers(self, keyword: str) -> dict[str, list[SourceOffer]]:
         """Query every source concurrently; a failing source yields no offers."""
@@ -86,8 +153,8 @@ class SearchService:
             )
         return product
 
-    async def _summarize(self, product: Product) -> ProductSummary:
-        best = await self._products.best_offer(product.id)
+    async def _summarize(self, product: Product, in_stock_only: bool = True) -> ProductSummary:
+        best = await self._products.best_offer(product.id, in_stock_only=in_stock_only)
         count = await self._products.offer_count(product.id)
         return ProductSummary(
             id=product.id,

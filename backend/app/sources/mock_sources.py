@@ -39,7 +39,10 @@ class _CatalogSource(PriceSource):
         )
 
     async def search(self, keyword: str) -> list[SourceOffer]:
-        return [self._to_offer(item) for item in find_items(keyword)]
+        from app.core.config import get_settings
+
+        fuzzy = get_settings().fuzzy_search
+        return [self._to_offer(item) for item in find_items(keyword, fuzzy=fuzzy)]
 
 
 class MockAmazonSource(_CatalogSource):

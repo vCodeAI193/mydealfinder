@@ -45,7 +45,25 @@ export interface PriceHistory {
 export interface SearchResponse {
   query: string;
   count: number;
+  page: number;
+  page_size: number;
   results: ProductSummary[];
+}
+
+export interface SearchOptions {
+  category?: string;
+  brand?: string;
+  min_price?: number;
+  max_price?: number;
+  sort?: "price_asc" | "price_desc" | "name";
+  in_stock_only?: boolean;
+  page?: number;
+  page_size?: number;
+}
+
+export interface FeatureFlags {
+  fuzzy_search: boolean;
+  enabled_sources: string[];
 }
 
 export interface Alert {
@@ -79,9 +97,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function buildSearchQuery(q: string, opts: SearchOptions = {}): string {
+  const params = new URLSearchParams({ q });
+  if (opts.category) params.set("category", opts.category);
+  if (opts.brand) params.set("brand", opts.brand);
+  if (opts.min_price != null) params.set("min_price", String(opts.min_price));
+  if (opts.max_price != null) params.set("max_price", String(opts.max_price));
+  if (opts.sort) params.set("sort", opts.sort);
+  if (opts.in_stock_only != null) params.set("in_stock_only", String(opts.in_stock_only));
+  if (opts.page != null) params.set("page", String(opts.page));
+  if (opts.page_size != null) params.set("page_size", String(opts.page_size));
+  return params.toString();
+}
+
 export const api = {
-  search: (q: string) =>
-    request<SearchResponse>(`/search?q=${encodeURIComponent(q)}`),
+  search: (q: string, opts: SearchOptions = {}) =>
+    request<SearchResponse>(`/search?${buildSearchQuery(q, opts)}`),
+  config: () => request<{ feature_flags: FeatureFlags }>(`/config`),
   product: (id: number) => request<ProductDetail>(`/products/${id}`),
   history: (id: number) => request<PriceHistory>(`/products/${id}/history`),
   createAlert: (body: {

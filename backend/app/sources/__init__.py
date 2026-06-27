@@ -12,8 +12,20 @@ from app.sources.mock_sources import (
 
 
 def get_default_sources() -> list[PriceSource]:
-    """Return the list of sources used by the application."""
-    return [MockAmazonSource(), MockEbaySource(), MockWalmartSource()]
+    """Return the sources used by the application, honoring the `enabled_sources`
+    feature flag (F045). An empty/unknown configuration falls back to all."""
+    from app.core.config import get_settings
+
+    all_sources: list[PriceSource] = [
+        MockAmazonSource(),
+        MockEbaySource(),
+        MockWalmartSource(),
+    ]
+    enabled = get_settings().enabled_source_list
+    if not enabled:
+        return all_sources
+    filtered = [s for s in all_sources if s.name in enabled]
+    return filtered or all_sources
 
 
 __all__ = [

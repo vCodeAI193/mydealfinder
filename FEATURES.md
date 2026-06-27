@@ -35,12 +35,12 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F001 | Fuzzy / typo-tolerant search | FF | P1 | M | ☐ | Tolerate misspellings in `catalog.find_items` / search service |
+| F001 | Fuzzy / typo-tolerant search | FF | P1 | M | ☑ | Tolerate misspellings in `catalog.find_items` / search service |
 | F002 | Search autocomplete & suggestions | FF | P2 | M | ☐ | `/search/suggest?q=` endpoint + dropdown in the search bar |
-| F003 | Category & brand filters | UP | P1 | S | ☐ | Filter facets on search results |
-| F004 | Price-range filter | UP | P1 | S | ☐ | Min/max price query params |
-| F005 | Sort options (price, name, discount, popularity) | UP | P1 | S | ☐ | User-selectable result ordering |
-| F006 | Results per page / pagination size | UP | P2 | S | ☐ | Configurable page size |
+| F003 | Category & brand filters | UP | P1 | S | ☑ | Filter facets on search results |
+| F004 | Price-range filter | UP | P1 | S | ☑ | Min/max price query params |
+| F005 | Sort options (price, name, discount, popularity) | UP | P1 | S | ☑ | User-selectable result ordering |
+| F006 | Results per page / pagination size | UP | P2 | S | ☑ | Configurable page size |
 | F007 | Saved searches | UP | P2 | M | ☐ | Persist a query for one-click re-run |
 | F008 | Recent search history | UP | P3 | S | ☐ | Local/per-user recent queries |
 | F009 | Barcode / EAN lookup | FF | P3 | M | ☐ | Resolve a scanned code to a product |
@@ -49,7 +49,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F010 | Include / exclude out-of-stock offers | UP | P1 | S | ☐ | Toggle in the comparison table |
+| F010 | Include / exclude out-of-stock offers | UP | P1 | S | ☑ | Toggle in the comparison table |
 | F011 | Shipping-aware "true price" | FF | P1 | M | ☐ | Add shipping to offer total before ranking |
 | F012 | Currency-converted display | UP | P2 | M | ☐ | Convert all offers to a chosen currency |
 | F013 | Preferred / pinned sources | UP | P2 | S | ☐ | Always surface chosen retailers first |
@@ -104,7 +104,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
 | F044 | Real retailer scraper plugin | FF | P1 | L | ☐ | Implement `PriceSource` against a live site |
-| F045 | Per-source enable / disable | FF | P1 | S | ☐ | Toggle sources in `get_default_sources` via config |
+| F045 | Per-source enable / disable | FF | P1 | S | ☑ | Toggle sources in `get_default_sources` via config |
 | F046 | Scheduled price-refresh interval | UP+FF | P1 | M | ☐ | Background refresh cadence |
 | F047 | Source rate-limit config | FF | P2 | M | ☐ | Throttle requests per source |
 | F048 | Manual "refresh now" button | UP | P2 | S | ☐ | On-demand re-fetch for a product |
@@ -115,7 +115,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F051 | Light / dark / system theme | UP | P1 | S | ☐ | Theme switch (CSS vars already in `globals.css`) |
+| F051 | Light / dark / system theme | UP | P1 | S | ☑ | Theme switch (CSS vars already in `globals.css`) |
 | F052 | Accent color customization | UP | P3 | S | ☐ | User-chosen accent via CSS variables |
 | F053 | Density (compact / comfortable) | UP | P3 | S | ☐ | Spacing preference |
 | F054 | Grid vs list result view | UP | P2 | S | ☐ | Toggle search-results layout |
@@ -205,17 +205,17 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 0 / 100 complete.**
+**Overall: 8 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
-| 1. Search & Discovery | F001–F009 | 9 | 0 |
-| 2. Price Comparison | F010–F016 | 7 | 0 |
+| 1. Search & Discovery | F001–F009 | 9 | 5 |
+| 2. Price Comparison | F010–F016 | 7 | 1 |
 | 3. Price History & Analytics | F017–F024 | 8 | 0 |
 | 4. Alerts & Notifications | F025–F034 | 10 | 0 |
 | 5. Accounts & Personalization | F035–F043 | 9 | 0 |
-| 6. Data Sources & Scraping | F044–F050 | 7 | 0 |
-| 7. UI/UX, Theming & Accessibility | F051–F060 | 10 | 0 |
+| 6. Data Sources & Scraping | F044–F050 | 7 | 1 |
+| 7. UI/UX, Theming & Accessibility | F051–F060 | 10 | 1 |
 | 8. Internationalization | F061–F065 | 5 | 0 |
 | 9. Sharing & Social | F066–F071 | 6 | 0 |
 | 10. API & Integrations | F072–F078 | 7 | 0 |
@@ -223,7 +223,12 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 12. Performance & Caching | F085–F088 | 4 | 0 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **0** |
+| **Total** | **F001–F100** | **100** | **8** |
+
+**Done so far:** F001 (fuzzy search), F003 (category/brand filters),
+F004 (price-range filter), F005 (sort), F006 (pagination),
+F010 (out-of-stock toggle), F045 (per-source enable/disable),
+F051 (light/dark/system theme).
 
 ### How to work through this backlog
 1. Pick a feature by ID (e.g. "implement F037").
