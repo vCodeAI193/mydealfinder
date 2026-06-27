@@ -21,6 +21,17 @@ export function setCurrency(currency: string) {
   emit();
 }
 
+export function getDefaultSort(): string {
+  if (typeof window === "undefined") return "price_asc";
+  return localStorage.getItem("defaultSort") || "price_asc";
+}
+
+export function setDefaultSort(sort: string) {
+  // No broadcast: the default sort is read when a new search starts, so it does
+  // not need to trigger a refetch of the current results.
+  localStorage.setItem("defaultSort", sort);
+}
+
 export function getPinnedSources(): string[] {
   if (typeof window === "undefined") return [];
   try {

@@ -149,6 +149,68 @@ class AlertSuggestion(BaseModel):
     window_days: int | None = None
 
 
+# ── Accounts (F035–F040) ────────────────────────────────────────────────────
+
+
+class UserCredentials(BaseModel):
+    """Registration / login request body."""
+
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+
+class UserPreferences(BaseModel):
+    """A user's configurable defaults (F038–F040)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    default_currency: str = Field(default="USD", min_length=3, max_length=3)
+    default_sort: str = "price_asc"
+    language: str = Field(default="en", min_length=2, max_length=8)
+
+
+class PreferencesUpdate(BaseModel):
+    """Partial preferences update; omitted fields are left unchanged."""
+
+    default_currency: str | None = Field(default=None, min_length=3, max_length=3)
+    default_sort: str | None = None
+    language: str | None = Field(default=None, min_length=2, max_length=8)
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    created_at: datetime
+    default_currency: str
+    default_sort: str
+    language: str
+
+
+class AuthResponse(BaseModel):
+    """Returned on register/login: the bearer token plus the user."""
+
+    token: str
+    user: UserOut
+
+
+class WatchlistItemOut(BaseModel):
+    """A saved product with its current best price (F037)."""
+
+    product_id: int
+    slug: str
+    name: str
+    image_url: str | None = None
+    best_price: float | None = None
+    currency: str | None = None
+    added_at: datetime
+
+
+class WatchlistAdd(BaseModel):
+    product_id: int
+
+
 class AlertCheckResult(BaseModel):
     """Outcome of evaluating outstanding alerts."""
 

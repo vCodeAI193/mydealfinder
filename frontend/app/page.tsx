@@ -8,7 +8,8 @@ import {
   type ProductSummary,
   type SearchOptions,
 } from "@/lib/api";
-import { getCurrency, onPrefsChange } from "@/lib/prefs";
+import { getCurrency, getDefaultSort, onPrefsChange, setDefaultSort } from "@/lib/prefs";
+import { isLoggedIn } from "@/lib/auth";
 
 const SUGGESTIONS = ["headphones", "iphone", "laptop", "switch", "kindle"];
 const PAGE_SIZE = 12;
@@ -31,6 +32,11 @@ const DEFAULT_FILTERS: Filters = {
   inStockOnly: true,
 };
 
+// Start from the user's saved default sort (F040), falling back to price_asc.
+function freshFilters(): Filters {
+  return { ...DEFAULT_FILTERS, sort: getDefaultSort() as Filters["sort"] };
+}
+
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
@@ -38,6 +44,9 @@ export default function HomePage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+
+  // Adopt the saved default sort once mounted (avoids SSR/client mismatch).
+  useEffect(() => setFilters((f) => ({ ...f, sort: getDefaultSort() as Filters["sort"] })), []);
   const [brands, setBrands] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -81,7 +90,7 @@ export default function HomePage() {
   }
 
   function onSearch(term: string) {
-    const fresh = DEFAULT_FILTERS;
+    const fresh = freshFilters();
     setSubmitted(term);
     setFilters(fresh);
     setBrands([]);
@@ -154,9 +163,13 @@ export default function HomePage() {
               <label>Sort</label>
               <select
                 value={filters.sort}
-                onChange={(e) =>
-                  setFilters({ ...filters, sort: e.target.value as Filters["sort"] })
-                }
+                onChange={(e) => {
+                  const sort = e.target.value as Filters["sort"];
+                  setFilters({ ...filters, sort });
+                  // Remember as the user's default sort (F040).
+                  setDefaultSort(sort);
+                  if (isLoggedIn()) api.updatePreferences({ default_sort: sort }).catch(() => {});
+                }}
               >
                 <option value="price_asc">Price: low to high</option>
                 <option value="price_desc">Price: high to low</option>

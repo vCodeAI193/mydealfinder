@@ -12,6 +12,7 @@ import {
 import PriceChart from "@/components/PriceChart";
 import AlertForm from "@/components/AlertForm";
 import AlertManager from "@/components/AlertManager";
+import WatchlistButton from "@/components/WatchlistButton";
 import { getCurrency, getPinnedSources, onPrefsChange, togglePinnedSource } from "@/lib/prefs";
 
 // History windows offered in the UI (F017). null = all history.
@@ -112,6 +113,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
           )}
           {analytics && analytics.sample_size > 0 && <DealBadges a={analytics} />}
+          <div style={{ marginTop: 14 }}>
+            <WatchlistButton productId={product.id} />
+          </div>
         </div>
       </div>
 

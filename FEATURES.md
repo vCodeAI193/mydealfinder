@@ -89,12 +89,12 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F035 | User registration & login | FF | P1 | L | ☐ | Auth foundation for per-user data |
-| F036 | Guest mode (no account) | FF | P1 | S | ☐ | Use the app without signing up |
-| F037 | Watchlist / favorites | UP | P1 | M | ☐ | Save products to follow |
-| F038 | Default currency preference | UP | P1 | S | ☐ | Per-user default currency |
+| F035 | User registration & login | FF | P1 | L | ☑ | Auth foundation for per-user data |
+| F036 | Guest mode (no account) | FF | P1 | S | ☑ | Use the app without signing up |
+| F037 | Watchlist / favorites | UP | P1 | M | ☑ | Save products to follow |
+| F038 | Default currency preference | UP | P1 | S | ☑ | Per-user default currency |
 | F039 | Default language preference | UP | P2 | S | ☐ | Per-user default UI language |
-| F040 | Default sort / filter preferences | UP | P2 | S | ☐ | Remember preferred result view |
+| F040 | Default sort / filter preferences | UP | P2 | S | ☑ | Remember preferred result view |
 | F041 | Profile & settings page | FF | P2 | M | ☐ | Central place to manage preferences |
 | F042 | GDPR data export | FF | P3 | M | ☐ | Download all personal data |
 | F043 | Account deletion | FF | P2 | S | ☐ | Self-service account/data removal |
@@ -205,7 +205,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 24 / 100 complete.**
+**Overall: 29 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
@@ -213,7 +213,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 2. Price Comparison | F010–F016 | 7 | 6 |
 | 3. Price History & Analytics | F017–F024 | 8 | 6 |
 | 4. Alerts & Notifications | F025–F034 | 10 | 5 |
-| 5. Accounts & Personalization | F035–F043 | 9 | 0 |
+| 5. Accounts & Personalization | F035–F043 | 9 | 5 |
 | 6. Data Sources & Scraping | F044–F050 | 7 | 1 |
 | 7. UI/UX, Theming & Accessibility | F051–F060 | 10 | 1 |
 | 8. Internationalization | F061–F065 | 5 | 0 |
@@ -223,7 +223,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 12. Performance & Caching | F085–F088 | 4 | 0 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **24** |
+| **Total** | **F001–F100** | **100** | **29** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
@@ -233,7 +233,9 @@ F017 (history time range), F018 (per-source toggle),
 F019 (min/max/avg markers), F020 (deal score), F021 (price-vs-avg badge),
 F023 (CSV/JSON export), F025 (multiple alerts/limit), F026 (percentage-drop alerts),
 F032 (snooze/pause), F033 (recurring alerts), F034 (threshold suggestion),
-F045 (per-source enable/disable), F051 (light/dark/system theme).
+F035 (registration/login), F036 (guest mode), F037 (watchlist),
+F038 (default currency), F040 (default sort), F045 (per-source enable/disable),
+F051 (light/dark/system theme).
 
 ### How to work through this backlog
 1. Pick a feature by ID (e.g. "implement F037").

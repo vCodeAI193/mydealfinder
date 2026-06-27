@@ -18,7 +18,10 @@ moved over time, and get alerted when it drops below your target.
 | **Price comparison** | `GET /products/{id}`, `GET /products/{id}/offers` | Product page table |
 | **Price history** | `GET /products/{id}/history` | Product page chart |
 | **Price alerts** | `POST /alerts`, `GET /alerts?email=`, `POST /alerts/check` | Product page form |
+| **Accounts & watchlist** | `POST /auth/register`, `/auth/login`, `GET /me/watchlist`, `PUT /me/preferences` | Account & watchlist pages |
 | **Multi-source aggregation** | 3 pluggable mock sources (Amazon / eBay / Walmart-like) | — |
+
+> The 100-feature configurable backlog and progress live in [`FEATURES.md`](./FEATURES.md).
 
 ---
 
@@ -163,6 +166,21 @@ curl -X POST http://localhost:8000/alerts/1/resume
 
 # Evaluate alerts (a scheduler would call this on a cron in production)
 curl -X POST http://localhost:8000/alerts/check
+
+# Accounts: register, then use the returned token (F035–F040)
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"password123"}' | python -c "import sys,json;print(json.load(sys.stdin)['token'])")
+
+# Save a product to your watchlist (F037)
+curl -X POST http://localhost:8000/me/watchlist \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"product_id":1}'
+
+# Update preferences (F038/F040)
+curl -X PUT http://localhost:8000/me/preferences \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"default_currency":"EUR","default_sort":"name"}'
 ```
 
 ---

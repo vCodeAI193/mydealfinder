@@ -138,3 +138,54 @@ class Alert(Base):
                 return None
             return round(self.reference_price * (1 - self.threshold_pct / 100), 2)
         return self.threshold_price
+
+
+class User(Base):
+    """A registered user (F035). Preferences (F038–F040) live on the user row."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    # User preferences with sensible defaults.
+    default_currency: Mapped[str] = mapped_column(String(3), default="USD")  # F038
+    default_sort: Mapped[str] = mapped_column(String(20), default="price_asc")  # F040
+    language: Mapped[str] = mapped_column(String(8), default="en")  # F039
+
+    sessions: Mapped[list["UserSession"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    watchlist: Mapped[list["WatchlistItem"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class UserSession(Base):
+    """An authentication session; only the token hash is stored."""
+
+    __tablename__ = "user_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    user: Mapped[User] = relationship(back_populates="sessions")
+
+
+class WatchlistItem(Base):
+    """A product a user has saved to follow (F037)."""
+
+    __tablename__ = "watchlist_items"
+    __table_args__ = (UniqueConstraint("user_id", "product_id", name="uq_watchlist_user_product"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    user: Mapped[User] = relationship(back_populates="watchlist")
+    product: Mapped[Product] = relationship()

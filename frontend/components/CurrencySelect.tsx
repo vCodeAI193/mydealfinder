@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { CURRENCIES, getCurrency, setCurrency } from "@/lib/prefs";
+import { isLoggedIn } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 // Header currency selector (F012). Persists to localStorage and broadcasts the
 // change so the search and product pages re-fetch converted prices.
@@ -12,6 +14,10 @@ export default function CurrencySelect() {
   useEffect(() => {
     setCur(getCurrency());
     setMounted(true);
+    // Keep in sync if login adopts a different saved currency.
+    const onStorage = () => setCur(getCurrency());
+    window.addEventListener("prefschange", onStorage);
+    return () => window.removeEventListener("prefschange", onStorage);
   }, []);
 
   return (
@@ -19,8 +25,11 @@ export default function CurrencySelect() {
       aria-label="Display currency"
       value={mounted ? currency : "USD"}
       onChange={(e) => {
-        setCur(e.target.value);
-        setCurrency(e.target.value);
+        const value = e.target.value;
+        setCur(value);
+        setCurrency(value);
+        // Persist as a preference for signed-in users (F038).
+        if (isLoggedIn()) api.updatePreferences({ default_currency: value }).catch(() => {});
       }}
       style={{ width: "auto", padding: "6px 10px", fontSize: 13 }}
     >

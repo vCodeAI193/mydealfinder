@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     show_source_ratings: bool = False
     # F015: surface coupon/voucher codes on offers.
     show_coupons: bool = False
+    # F036: allow using the app without an account.
+    allow_guest: bool = True
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -62,6 +64,7 @@ class Settings(BaseSettings):
             "true_price": self.true_price,
             "show_source_ratings": self.show_source_ratings,
             "show_coupons": self.show_coupons,
+            "allow_guest": self.allow_guest,
         }
 
 

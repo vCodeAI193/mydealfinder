@@ -11,8 +11,10 @@ from sqlalchemy.ext.asyncio import (
 from app.core.database import Base
 from app.domain import models  # noqa: F401  (register models on metadata)
 from app.repositories.alert_repository import AlertRepository
+from app.repositories.auth_repository import AuthRepository
 from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
+from app.repositories.watchlist_repository import WatchlistRepository
 
 
 @pytest_asyncio.fixture
@@ -42,3 +44,13 @@ def price_repo(session: AsyncSession) -> PriceRepository:
 @pytest_asyncio.fixture
 def alert_repo(session: AsyncSession) -> AlertRepository:
     return AlertRepository(session)
+
+
+@pytest_asyncio.fixture
+def auth_repo(session: AsyncSession) -> AuthRepository:
+    return AuthRepository(session)
+
+
+@pytest_asyncio.fixture
+def watchlist_repo(session: AsyncSession) -> WatchlistRepository:
+    return WatchlistRepository(session)

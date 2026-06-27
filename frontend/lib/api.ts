@@ -127,10 +127,44 @@ export interface AlertSuggestion {
   window_days: number | null;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  created_at: string;
+  default_currency: string;
+  default_sort: string;
+  language: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface WatchlistItem {
+  product_id: number;
+  slug: string;
+  name: string;
+  image_url: string | null;
+  best_price: number | null;
+  currency: string | null;
+  added_at: string;
+}
+
+function authHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeader(),
+      ...(init?.headers || {}),
+    },
     cache: "no-store",
   });
   if (!res.ok) {
@@ -143,6 +177,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new Error(detail);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -188,6 +223,31 @@ export const api = {
   resumeAlert: (id: number) => request<Alert>(`/alerts/${id}/resume`, { method: "POST" }),
   alertSuggestion: (productId: number, days = 30) =>
     request<AlertSuggestion>(`/alerts/suggestion?product_id=${productId}&days=${days}`),
+
+  // Accounts (F035–F040)
+  register: (email: string, password: string) =>
+    request<AuthResponse>(`/auth/register`, {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  login: (email: string, password: string) =>
+    request<AuthResponse>(`/auth/login`, {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  logout: () => request<void>(`/auth/logout`, { method: "POST" }),
+  me: () => request<User>(`/auth/me`),
+  updatePreferences: (body: Partial<Pick<User, "default_currency" | "default_sort" | "language">>) =>
+    request<User>(`/me/preferences`, { method: "PUT", body: JSON.stringify(body) }),
+  watchlist: (currency?: string) =>
+    request<WatchlistItem[]>(`/me/watchlist${currency ? `?currency=${currency}` : ""}`),
+  addToWatchlist: (productId: number) =>
+    request<{ status: string }>(`/me/watchlist`, {
+      method: "POST",
+      body: JSON.stringify({ product_id: productId }),
+    }),
+  removeFromWatchlist: (productId: number) =>
+    request<void>(`/me/watchlist/${productId}`, { method: "DELETE" }),
 };
 
 export function formatPrice(value: number | null, currency: string | null): string {
