@@ -1,11 +1,16 @@
-"""Authentication and account endpoints (F035–F040)."""
+"""Authentication and account endpoints (F035–F043)."""
+import io
+
 from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi.responses import StreamingResponse
 
 from app.api.deps import (
+    AccountServiceDep,
     AuthServiceDep,
     CurrentUserDep,
     WatchlistServiceDep,
 )
+from app.core.config import get_settings
 from app.domain.schemas import (
     AuthResponse,
     PreferencesUpdate,
@@ -89,3 +94,28 @@ async def remove_watchlist(product_id: int, user: CurrentUserDep, service: Watch
     removed = await service.remove(user.id, product_id)
     if not removed:
         raise HTTPException(status_code=404, detail="Not in watchlist")
+
+
+# ── Data export (F042) & account deletion (F043) ──
+
+
+@router.get("/me/export", summary="Export all of your data as JSON (F042)")
+async def export_data(user: CurrentUserDep, service: AccountServiceDep):
+    if not get_settings().enable_data_export:
+        raise HTTPException(status_code=403, detail="Data export is disabled")
+    import json
+
+    data = await service.export_data(user)
+    payload = json.dumps(data, indent=2).encode()
+    return StreamingResponse(
+        io.BytesIO(payload),
+        media_type="application/json",
+        headers={"Content-Disposition": 'attachment; filename="mydealfinder-data.json"'},
+    )
+
+
+@router.delete("/me", status_code=204, summary="Delete your account and all data (F043)")
+async def delete_account(user: CurrentUserDep, service: AccountServiceDep) -> None:
+    if not get_settings().enable_account_deletion:
+        raise HTTPException(status_code=403, detail="Account deletion is disabled")
+    await service.delete_account(user)

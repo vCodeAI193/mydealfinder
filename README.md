@@ -177,10 +177,14 @@ curl -X POST http://localhost:8000/me/watchlist \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"product_id":1}'
 
-# Update preferences (F038/F040)
+# Update preferences (F038–F040)
 curl -X PUT http://localhost:8000/me/preferences \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"default_currency":"EUR","default_sort":"name"}'
+  -d '{"default_currency":"EUR","default_sort":"name","language":"de"}'
+
+# Export all your data (F042) / delete your account (F043)
+curl http://localhost:8000/me/export -H "Authorization: Bearer $TOKEN"
+curl -X DELETE http://localhost:8000/me -H "Authorization: Bearer $TOKEN"
 ```
 
 ---

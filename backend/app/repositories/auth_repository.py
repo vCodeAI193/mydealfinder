@@ -24,6 +24,11 @@ class AuthRepository:
         await self._session.flush()
         return user
 
+    async def delete_user(self, user: User) -> None:
+        """Delete a user; sessions and watchlist cascade via the FK."""
+        await self._session.delete(user)
+        await self._session.flush()
+
     # ── Sessions ──
     async def add_session(self, *, user_id: int, token_hash: str) -> UserSession:
         sess = UserSession(user_id=user_id, token_hash=token_hash)

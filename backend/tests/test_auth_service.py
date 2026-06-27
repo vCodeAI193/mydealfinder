@@ -124,3 +124,64 @@ async def test_watchlist_add_missing_product(auth_repo, watchlist_repo, product_
     service = WatchlistService(watchlist_repo, product_repo)
     with pytest.raises(ProductNotFoundError):
         await service.add(user.id, 9999)
+
+
+# ── account export & deletion (F042/F043) ──
+
+
+async def _setup_account(auth_repo, watchlist_repo, product_repo, alert_repo):
+    from app.domain.schemas import AlertCreate
+    from app.services.alert_service import AlertService
+
+    auth = AuthService(auth_repo)
+    reg = await auth.register("acct@example.com", "password123")
+    user = await auth.authenticate(reg.token)
+
+    product = await product_repo.upsert_product(
+        slug="p", name="P", brand=None, category=None, description=None, image_url=None
+    )
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=50.0, currency="USD", in_stock=True
+    )
+    await WatchlistService(watchlist_repo, product_repo).add(user.id, product.id)
+    await AlertService(alert_repo, product_repo).create_alert(
+        AlertCreate(product_id=product.id, email="acct@example.com", threshold_price=40.0)
+    )
+    return user, product
+
+
+@pytest.mark.asyncio
+async def test_export_includes_all_user_data(auth_repo, watchlist_repo, product_repo, alert_repo):
+    from app.services.account_service import AccountService
+
+    user, _ = await _setup_account(auth_repo, watchlist_repo, product_repo, alert_repo)
+    service = AccountService(
+        auth_repo, alert_repo, WatchlistService(watchlist_repo, product_repo)
+    )
+
+    data = await service.export_data(user)
+
+    assert data["profile"]["email"] == "acct@example.com"
+    assert data["preferences"]["default_currency"] == "USD"
+    assert len(data["watchlist"]) == 1
+    assert len(data["alerts"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_account_removes_user_and_data(
+    auth_repo, watchlist_repo, product_repo, alert_repo
+):
+    from app.services.account_service import AccountService
+
+    auth = AuthService(auth_repo)
+    user, _ = await _setup_account(auth_repo, watchlist_repo, product_repo, alert_repo)
+    service = AccountService(
+        auth_repo, alert_repo, WatchlistService(watchlist_repo, product_repo)
+    )
+
+    await service.delete_account(user)
+
+    # User is gone, and their alerts (keyed by email) are removed too.
+    assert await auth_repo.get_user_by_email("acct@example.com") is None
+    assert await alert_repo.list_for_email("acct@example.com") == []
+    assert await watchlist_repo.list_for_user(user.id) == []

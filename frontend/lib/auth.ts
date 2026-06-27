@@ -56,6 +56,19 @@ export async function logout(): Promise<void> {
   } catch {
     /* best effort */
   }
+  clearLocalSession();
+}
+
+/** Update the cached user (e.g. after changing preferences) and re-broadcast. */
+export function setStoredUser(user: User) {
+  localStorage.setItem("user", JSON.stringify(user));
+  setCurrency(user.default_currency);
+  setDefaultSort(user.default_sort);
+  emit();
+}
+
+/** Drop the local session without a server round-trip (e.g. after deletion). */
+export function clearLocalSession() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   emit();

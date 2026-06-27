@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     show_coupons: bool = False
     # F036: allow using the app without an account.
     allow_guest: bool = True
+    # F042: allow users to export all their data.
+    enable_data_export: bool = True
+    # F043: allow users to delete their own account.
+    enable_account_deletion: bool = True
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -65,6 +69,8 @@ class Settings(BaseSettings):
             "show_source_ratings": self.show_source_ratings,
             "show_coupons": self.show_coupons,
             "allow_guest": self.allow_guest,
+            "enable_data_export": self.enable_data_export,
+            "enable_account_deletion": self.enable_account_deletion,
         }
 
 

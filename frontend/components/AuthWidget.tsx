@@ -33,9 +33,9 @@ export default function AuthWidget() {
       <Link href="/watchlist" className="badge" title="Your watchlist">
         ♥ Watchlist
       </Link>
-      <span className="muted" style={{ fontSize: 13 }} title={user.email}>
+      <Link href="/settings" className="muted" style={{ fontSize: 13 }} title={user.email}>
         {user.email.split("@")[0]}
-      </span>
+      </Link>
       <button
         type="button"
         className="secondary"

@@ -88,6 +88,9 @@ export interface FeatureFlags {
   true_price: boolean;
   show_source_ratings: boolean;
   show_coupons: boolean;
+  allow_guest: boolean;
+  enable_data_export: boolean;
+  enable_account_deletion: boolean;
 }
 
 export interface Alert {
@@ -248,6 +251,8 @@ export const api = {
     }),
   removeFromWatchlist: (productId: number) =>
     request<void>(`/me/watchlist/${productId}`, { method: "DELETE" }),
+  exportData: () => request<unknown>(`/me/export`),
+  deleteAccount: () => request<void>(`/me`, { method: "DELETE" }),
 };
 
 export function formatPrice(value: number | null, currency: string | null): string {

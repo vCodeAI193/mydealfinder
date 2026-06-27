@@ -41,3 +41,11 @@ class AlertRepository:
             select(Alert).where(Alert.email == email).order_by(Alert.created_at.desc())
         )
         return list(result.scalars().all())
+
+    async def delete_for_email(self, email: str) -> int:
+        """Delete all alerts registered to an email (used on account deletion)."""
+        alerts = await self.list_for_email(email)
+        for alert in alerts:
+            await self._session.delete(alert)
+        await self._session.flush()
+        return len(alerts)

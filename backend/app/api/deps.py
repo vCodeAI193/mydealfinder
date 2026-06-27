@@ -11,6 +11,7 @@ from app.repositories.auth_repository import AuthRepository
 from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
 from app.repositories.watchlist_repository import WatchlistRepository
+from app.services.account_service import AccountService
 from app.services.alert_service import AlertService
 from app.services.auth_service import AuthService
 from app.services.price_service import PriceService
@@ -51,11 +52,20 @@ def get_watchlist_service(session: SessionDep) -> WatchlistService:
     return WatchlistService(WatchlistRepository(session), ProductRepository(session))
 
 
+def get_account_service(session: SessionDep) -> AccountService:
+    return AccountService(
+        auth_repo=AuthRepository(session),
+        alert_repo=AlertRepository(session),
+        watchlist_service=WatchlistService(WatchlistRepository(session), ProductRepository(session)),
+    )
+
+
 SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]
 PriceServiceDep = Annotated[PriceService, Depends(get_price_service)]
 AlertServiceDep = Annotated[AlertService, Depends(get_alert_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 WatchlistServiceDep = Annotated[WatchlistService, Depends(get_watchlist_service)]
+AccountServiceDep = Annotated[AccountService, Depends(get_account_service)]
 
 
 def _token_from_header(authorization: str | None) -> str | None:
