@@ -5,37 +5,56 @@ import Link from "next/link";
 import {
   api,
   formatPrice,
+  type PriceAnalytics,
   type PriceHistory,
   type ProductDetail,
 } from "@/lib/api";
 import PriceChart from "@/components/PriceChart";
 import AlertForm from "@/components/AlertForm";
 
+// History windows offered in the UI (F017). null = all history.
+const RANGES: { label: string; days: number | null }[] = [
+  { label: "7d", days: 7 },
+  { label: "30d", days: 30 },
+  { label: "90d", days: 90 },
+  { label: "All", days: null },
+];
+
 export default function ProductPage({ params }: { params: { id: string } }) {
   const productId = Number(params.id);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [history, setHistory] = useState<PriceHistory | null>(null);
+  const [analytics, setAnalytics] = useState<PriceAnalytics | null>(null);
+  const [days, setDays] = useState<number | null>(30);
+  const [chartMode, setChartMode] = useState<"best" | "source">("best");
   const [error, setError] = useState<string | null>(null);
 
+  // Load the product once.
   useEffect(() => {
     let active = true;
-    (async () => {
-      try {
-        const [p, h] = await Promise.all([
-          api.product(productId),
-          api.history(productId),
-        ]);
-        if (!active) return;
-        setProduct(p);
-        setHistory(h);
-      } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : "Failed to load product");
-      }
-    })();
+    api
+      .product(productId)
+      .then((p) => active && setProduct(p))
+      .catch((e) => active && setError(e instanceof Error ? e.message : "Failed to load product"));
     return () => {
       active = false;
     };
   }, [productId]);
+
+  // Reload history + analytics whenever the selected range changes (F017).
+  useEffect(() => {
+    let active = true;
+    Promise.all([api.history(productId, days), api.analytics(productId, days)])
+      .then(([h, a]) => {
+        if (!active) return;
+        setHistory(h);
+        setAnalytics(a);
+      })
+      .catch((e) => active && setError(e instanceof Error ? e.message : "Failed to load history"));
+    return () => {
+      active = false;
+    };
+  }, [productId, days]);
 
   if (error) {
     return (
@@ -85,6 +104,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               </span>
             </div>
           )}
+          {analytics && analytics.sample_size > 0 && <DealBadges a={analytics} />}
         </div>
       </div>
 
@@ -126,8 +146,48 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       </section>
 
       <section className="panel">
-        <h2>Price history</h2>
-        {history ? <PriceChart points={history.points} /> : <div className="muted">Loading…</div>}
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ margin: 0 }}>Price history</h2>
+          <div className="row" style={{ gap: 6 }}>
+            {RANGES.map((r) => (
+              <button
+                key={r.label}
+                type="button"
+                className="secondary"
+                onClick={() => setDays(r.days)}
+                style={{
+                  padding: "6px 12px",
+                  fontSize: 13,
+                  borderColor: days === r.days ? "var(--accent)" : undefined,
+                  color: days === r.days ? "var(--accent)" : undefined,
+                }}
+              >
+                {r.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setChartMode(chartMode === "best" ? "source" : "best")}
+              style={{ padding: "6px 12px", fontSize: 13 }}
+              title="Toggle best-price vs per-source view"
+            >
+              {chartMode === "best" ? "Best price" : "Per source"}
+            </button>
+          </div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {history ? (
+            <PriceChart points={history.points} mode={chartMode} />
+          ) : (
+            <div className="muted">Loading…</div>
+          )}
+        </div>
+        <div className="row" style={{ gap: 12, marginTop: 12 }}>
+          <span className="muted">Export:</span>
+          <a href={api.historyExportUrl(product.id, "csv", days)}>CSV</a>
+          <a href={api.historyExportUrl(product.id, "json", days)}>JSON</a>
+        </div>
       </section>
 
       <section className="panel">
@@ -142,5 +202,36 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         />
       </section>
     </main>
+  );
+}
+
+// Deal score (F020) and price-vs-average badges (F021).
+function DealBadges({ a }: { a: PriceAnalytics }) {
+  const score = a.deal_score ?? 0;
+  const scoreColor = score >= 70 ? "var(--accent-2)" : score >= 40 ? "var(--accent)" : "var(--muted)";
+  const pct = a.pct_vs_avg ?? 0;
+  const belowAvg = pct < 0;
+  return (
+    <div className="row" style={{ gap: 8, marginTop: 10 }}>
+      <span
+        className="badge"
+        title="100 = at the historical low for this window"
+        style={{ borderColor: scoreColor, color: scoreColor }}
+      >
+        Deal score {score}/100
+      </span>
+      <span
+        className="badge"
+        title="Current best price vs the window average"
+        style={{ color: belowAvg ? "var(--accent-2)" : "var(--danger)" }}
+      >
+        {belowAvg ? "▼" : "▲"} {Math.abs(pct).toFixed(1)}% vs avg
+      </span>
+      {a.min_price != null && (
+        <span className="badge" title="Lowest price seen in this window">
+          Low {formatPrice(a.min_price, a.currency)}
+        </span>
+      )}
+    </div>
   );
 }

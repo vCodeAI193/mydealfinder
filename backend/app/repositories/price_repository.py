@@ -32,10 +32,13 @@ class PriceRepository:
         await self._session.flush()
         return point
 
-    async def history_for_product(self, product_id: int) -> list[PricePoint]:
-        result = await self._session.execute(
-            select(PricePoint)
-            .where(PricePoint.product_id == product_id)
-            .order_by(PricePoint.recorded_at.asc())
-        )
+    async def history_for_product(
+        self, product_id: int, since: datetime | None = None
+    ) -> list[PricePoint]:
+        """Return a product's price points oldest-first, optionally limited to
+        observations recorded on or after `since` (F017)."""
+        query = select(PricePoint).where(PricePoint.product_id == product_id)
+        if since is not None:
+            query = query.where(PricePoint.recorded_at >= since)
+        result = await self._session.execute(query.order_by(PricePoint.recorded_at.asc()))
         return list(result.scalars().all())

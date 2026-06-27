@@ -132,8 +132,14 @@ curl "http://localhost:8000/config"
 # Compare prices for a product
 curl "http://localhost:8000/products/1/offers"
 
-# Price history
-curl "http://localhost:8000/products/1/history"
+# Price history (optionally windowed to the last N days — F017)
+curl "http://localhost:8000/products/1/history?days=30"
+
+# Price analytics: min/max/avg, deal score & price-vs-average (F019–F021)
+curl "http://localhost:8000/products/1/analytics?days=30"
+
+# Export price history as CSV or JSON (F023)
+curl "http://localhost:8000/products/1/history/export?format=csv&days=30"
 
 # Create a price alert
 curl -X POST http://localhost:8000/alerts \

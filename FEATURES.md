@@ -61,13 +61,13 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F017 | Selectable history time range (7/30/90/365d) | UP | P1 | S | ☐ | Range selector on the chart |
-| F018 | Per-source vs best-price history toggle | UP | P2 | M | ☐ | Switch chart series |
-| F019 | Min / max / average price markers | UP | P2 | S | ☐ | Reference lines on the chart |
-| F020 | Historical "good deal" score | FF | P1 | M | ☐ | Score current price vs historical distribution |
-| F021 | Price-drop percentage badges | UP | P2 | S | ☐ | "−18% vs 30-day avg" |
+| F017 | Selectable history time range (7/30/90/365d) | UP | P1 | S | ☑ | Range selector on the chart |
+| F018 | Per-source vs best-price history toggle | UP | P2 | M | ☑ | Switch chart series |
+| F019 | Min / max / average price markers | UP | P2 | S | ☑ | Reference lines on the chart |
+| F020 | Historical "good deal" score | FF | P1 | M | ☑ | Score current price vs historical distribution |
+| F021 | Price-drop percentage badges | UP | P2 | S | ☑ | "−18% vs 30-day avg" |
 | F022 | Trend forecast | FF | P3 | L | ☐ | Simple projection of likely price direction |
-| F023 | Export history (CSV / JSON) | FF | P3 | S | ☐ | Download endpoint for a product's history |
+| F023 | Export history (CSV / JSON) | FF | P3 | S | ☑ | Download endpoint for a product's history |
 | F024 | Chart type (line / area / candlestick) | UP | P3 | M | ☐ | User-selectable visualization |
 
 ## 4. Alerts & Notifications
@@ -205,13 +205,13 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 8 / 100 complete.**
+**Overall: 14 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
 | 1. Search & Discovery | F001–F009 | 9 | 5 |
 | 2. Price Comparison | F010–F016 | 7 | 1 |
-| 3. Price History & Analytics | F017–F024 | 8 | 0 |
+| 3. Price History & Analytics | F017–F024 | 8 | 6 |
 | 4. Alerts & Notifications | F025–F034 | 10 | 0 |
 | 5. Accounts & Personalization | F035–F043 | 9 | 0 |
 | 6. Data Sources & Scraping | F044–F050 | 7 | 1 |
@@ -223,11 +223,13 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 12. Performance & Caching | F085–F088 | 4 | 0 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **8** |
+| **Total** | **F001–F100** | **100** | **14** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
-F010 (out-of-stock toggle), F045 (per-source enable/disable),
+F010 (out-of-stock toggle), F017 (history time range), F018 (per-source toggle),
+F019 (min/max/avg markers), F020 (deal score), F021 (price-vs-avg badge),
+F023 (CSV/JSON export), F045 (per-source enable/disable),
 F051 (light/dark/system theme).
 
 ### How to work through this backlog

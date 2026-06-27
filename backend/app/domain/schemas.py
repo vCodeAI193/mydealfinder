@@ -53,7 +53,25 @@ class PricePointOut(BaseModel):
 
 class PriceHistoryOut(BaseModel):
     product_id: int
+    window_days: int | None = None  # None means "all history"
     points: list[PricePointOut]
+
+
+class PriceAnalytics(BaseModel):
+    """Derived statistics over a product's price history (F019–F021)."""
+
+    product_id: int
+    window_days: int | None = None
+    sample_size: int
+    currency: str | None = None
+    current_price: float | None = None
+    min_price: float | None = None
+    max_price: float | None = None
+    avg_price: float | None = None
+    # Current price vs the window average, in percent (negative = below avg).
+    pct_vs_avg: float | None = None  # F021
+    # 0–100: 100 when the current price is at the historical low (F020).
+    deal_score: int | None = None
 
 
 class SearchResponse(BaseModel):

@@ -39,7 +39,21 @@ export interface PricePoint {
 
 export interface PriceHistory {
   product_id: number;
+  window_days: number | null;
   points: PricePoint[];
+}
+
+export interface PriceAnalytics {
+  product_id: number;
+  window_days: number | null;
+  sample_size: number;
+  currency: string | null;
+  current_price: number | null;
+  min_price: number | null;
+  max_price: number | null;
+  avg_price: number | null;
+  pct_vs_avg: number | null;
+  deal_score: number | null;
 }
 
 export interface SearchResponse {
@@ -115,7 +129,15 @@ export const api = {
     request<SearchResponse>(`/search?${buildSearchQuery(q, opts)}`),
   config: () => request<{ feature_flags: FeatureFlags }>(`/config`),
   product: (id: number) => request<ProductDetail>(`/products/${id}`),
-  history: (id: number) => request<PriceHistory>(`/products/${id}/history`),
+  history: (id: number, days?: number | null) =>
+    request<PriceHistory>(`/products/${id}/history${days ? `?days=${days}` : ""}`),
+  analytics: (id: number, days?: number | null) =>
+    request<PriceAnalytics>(`/products/${id}/analytics${days ? `?days=${days}` : ""}`),
+  historyExportUrl: (id: number, format: "csv" | "json", days?: number | null) => {
+    const params = new URLSearchParams({ format });
+    if (days) params.set("days", String(days));
+    return `${API_URL}/products/${id}/history/export?${params.toString()}`;
+  },
   createAlert: (body: {
     product_id: number;
     email: string;
