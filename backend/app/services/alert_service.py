@@ -3,10 +3,19 @@ from datetime import datetime, timezone
 
 from app.core.config import get_settings
 from app.domain.models import Alert
-from app.domain.schemas import AlertCheckResult, AlertCreate, AlertOut
+from app.domain.schemas import (
+    AlertCheckResult,
+    AlertCreate,
+    AlertOut,
+    DigestResult,
+)
 from app.repositories.alert_repository import AlertRepository
 from app.repositories.product_repository import ProductRepository
+from app.services.notifications import AlertNotifier, ChannelNotifier, build_message
 from app.services.price_service import ProductNotFoundError
+
+# Re-exported so existing imports (and tests) keep working.
+__all__ = ["AlertService", "AlertNotifier", "AlertLimitError", "AlertNotFoundError"]
 
 
 class AlertLimitError(Exception):
@@ -15,16 +24,6 @@ class AlertLimitError(Exception):
 
 class AlertNotFoundError(Exception):
     """Raised when an alert id does not exist."""
-
-
-class AlertNotifier:
-    """Delivers a triggered alert. The MVP just logs; swap for SMTP/push later."""
-
-    async def notify(self, alert: Alert, current_price: float) -> None:
-        print(
-            f"[ALERT] {alert.email}: product {alert.product_id} dropped to "
-            f"{current_price} {alert.currency} (threshold {alert.effective_threshold})"
-        )
 
 
 class AlertService:
@@ -36,7 +35,7 @@ class AlertService:
     ) -> None:
         self._alerts = alert_repo
         self._products = product_repo
-        self._notifier = notifier or AlertNotifier()
+        self._notifier = notifier or ChannelNotifier()
 
     async def create_alert(self, payload: AlertCreate) -> AlertOut:
         """Register an alert, validating the product exists and the per-product
@@ -69,6 +68,9 @@ class AlertService:
                 reference_price=reference_price,
                 recurring=payload.recurring,
                 currency=payload.currency,
+                channel=payload.channel,
+                webhook_url=payload.webhook_url,
+                frequency=payload.frequency,
             )
         )
         return AlertOut.model_validate(alert)
@@ -93,35 +95,64 @@ class AlertService:
         return AlertOut.model_validate(alert)
 
     async def check_alerts(self) -> AlertCheckResult:
-        """Evaluate all active alerts against current best prices.
+        """Evaluate all active alerts against current prices/stock.
 
-        A one-shot alert fires once and moves to 'triggered'. A recurring alert
-        (F033) fires, then disarms (stays active) until the price rises back
-        above its threshold, at which point it silently re-arms.
+        Price alerts fire when the best in-stock price is at or below the
+        threshold; restock alerts (F027) fire when a product is back in stock.
+        Instant alerts notify immediately; daily/weekly ones (F031) are recorded
+        and delivered later via :meth:`send_digest`.
         """
         active = await self._alerts.list_active()
         triggered: list[AlertOut] = []
 
         for alert in active:
-            threshold = alert.effective_threshold
-            best = await self._products.best_offer(alert.product_id)
-            if best is None or threshold is None:
-                continue
-            price = best.price
+            condition_met, price = await self._evaluate(alert)
 
-            if alert.armed and price <= threshold:
+            if alert.armed and condition_met:
                 alert.triggered_at = datetime.now(timezone.utc)
                 alert.triggered_price = price
-                await self._notifier.notify(alert, price)
+                if alert.frequency == "instant":
+                    await self._notifier.notify(alert, price)
+                    alert.notified_at = alert.triggered_at
                 if alert.recurring:
-                    alert.armed = False  # stay active but quiet until price recovers
+                    alert.armed = False  # quiet until the condition clears
                 else:
                     alert.status = "triggered"
                 triggered.append(AlertOut.model_validate(alert))
-            elif not alert.armed and price > threshold:
+            elif not alert.armed and not condition_met:
                 alert.armed = True  # re-arm recurring alert; no notification
 
         return AlertCheckResult(checked=len(active), triggered=triggered)
+
+    async def send_digest(self, frequency: str) -> DigestResult:
+        """Deliver one batched message per recipient for the given frequency (F031)."""
+        pending = await self._alerts.list_pending_digest(frequency)
+        by_email: dict[str, list[Alert]] = {}
+        for alert in pending:
+            by_email.setdefault(alert.email, []).append(alert)
+
+        now = datetime.now(timezone.utc)
+        for email, alerts in by_email.items():
+            lines = [build_message(a, a.triggered_price) for a in alerts]
+            await self._notifier.notify_digest(email, lines)
+            for a in alerts:
+                a.notified_at = now
+
+        return DigestResult(
+            frequency=frequency, recipients=len(by_email), notifications=len(pending)
+        )
+
+    async def _evaluate(self, alert: Alert) -> tuple[bool, float | None]:
+        """Return (condition_met, relevant_price) for an alert."""
+        if alert.alert_type == "restock":
+            best = await self._products.best_offer(alert.product_id, in_stock_only=True)
+            return (best is not None, best.price if best else None)
+
+        threshold = alert.effective_threshold
+        best = await self._products.best_offer(alert.product_id, in_stock_only=True)
+        if best is None or threshold is None:
+            return (False, None)
+        return (best.price <= threshold, best.price)
 
     async def _require(self, alert_id: int) -> Alert:
         alert = await self._alerts.get(alert_id)

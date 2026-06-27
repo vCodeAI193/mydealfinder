@@ -99,7 +99,7 @@ class AlertCreate(BaseModel):
 
     product_id: int
     email: EmailStr
-    alert_type: Literal["absolute", "percentage"] = "absolute"
+    alert_type: Literal["absolute", "percentage", "restock"] = "absolute"
     threshold_price: float | None = Field(
         default=None, gt=0, description="Absolute target price (absolute alerts)."
     )
@@ -108,6 +108,10 @@ class AlertCreate(BaseModel):
     )
     recurring: bool = False
     currency: str = Field(default="USD", min_length=3, max_length=3)
+    # Delivery options.
+    channel: Literal["email", "webhook"] = "email"  # F030
+    webhook_url: str | None = None  # F030
+    frequency: Literal["instant", "daily", "weekly"] = "instant"  # F031
 
     @model_validator(mode="after")
     def _check_threshold(self) -> "AlertCreate":
@@ -115,6 +119,8 @@ class AlertCreate(BaseModel):
             raise ValueError("threshold_price is required for absolute alerts")
         if self.alert_type == "percentage" and self.threshold_pct is None:
             raise ValueError("threshold_pct is required for percentage alerts")
+        if self.channel == "webhook" and not self.webhook_url:
+            raise ValueError("webhook_url is required for the webhook channel")
         return self
 
 
@@ -134,9 +140,13 @@ class AlertOut(BaseModel):
     status: str
     active: bool
     armed: bool
+    channel: str
+    webhook_url: str | None = None
+    frequency: str
     created_at: datetime
     triggered_at: datetime | None = None
     triggered_price: float | None = None
+    notified_at: datetime | None = None
 
 
 class AlertSuggestion(BaseModel):
@@ -216,3 +226,11 @@ class AlertCheckResult(BaseModel):
 
     checked: int
     triggered: list[AlertOut]
+
+
+class DigestResult(BaseModel):
+    """Outcome of sending a batched digest (F031)."""
+
+    frequency: str
+    recipients: int
+    notifications: int

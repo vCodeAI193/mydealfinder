@@ -9,9 +9,13 @@ from app.services.price_service import ProductNotFoundError
 class _RecordingNotifier(AlertNotifier):
     def __init__(self):
         self.sent: list[tuple[str, float]] = []
+        self.digests: list[tuple[str, list[str]]] = []
 
     async def notify(self, alert, current_price):  # type: ignore[override]
         self.sent.append((alert.email, current_price))
+
+    async def notify_digest(self, email, lines):  # type: ignore[override]
+        self.digests.append((email, lines))
 
 
 async def _make_product(product_repo, price: float):
@@ -208,3 +212,63 @@ async def test_suggest_threshold(product_repo, price_repo):
 
     # min(current=100, avg=110) * 0.97 = 97.0
     assert suggestion.suggested_threshold == 97.0
+
+
+# ── back-in-stock, channels, and digest (F027/F030/F031) ──
+
+
+@pytest.mark.asyncio
+async def test_restock_alert_fires_when_back_in_stock(alert_repo, product_repo):
+    product = await product_repo.upsert_product(
+        slug="r", name="R", brand=None, category=None, description=None, image_url=None
+    )
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=20.0, currency="USD", in_stock=False
+    )
+    notifier = _RecordingNotifier()
+    service = AlertService(alert_repo, product_repo, notifier=notifier)
+    await service.create_alert(
+        AlertCreate(product_id=product.id, email="b@example.com", alert_type="restock")
+    )
+
+    # Out of stock → no trigger.
+    assert (await service.check_alerts()).triggered == []
+
+    # Back in stock → fires.
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=20.0, currency="USD", in_stock=True
+    )
+    result = await service.check_alerts()
+    assert len(result.triggered) == 1
+    assert notifier.sent == [("b@example.com", 20.0)]
+
+
+@pytest.mark.asyncio
+async def test_daily_alert_is_deferred_to_digest(alert_repo, product_repo):
+    product = await _make_product(product_repo, price=80.0)
+    notifier = _RecordingNotifier()
+    service = AlertService(alert_repo, product_repo, notifier=notifier)
+    await service.create_alert(
+        AlertCreate(
+            product_id=product.id, email="b@example.com", threshold_price=100.0, frequency="daily"
+        )
+    )
+
+    result = await service.check_alerts()
+    assert len(result.triggered) == 1
+    # Deferred: no instant notification yet.
+    assert notifier.sent == []
+
+    digest = await service.send_digest("daily")
+    assert digest.recipients == 1
+    assert digest.notifications == 1
+    assert len(notifier.digests) == 1
+    assert notifier.digests[0][0] == "b@example.com"
+
+    # A second digest has nothing left to send.
+    assert (await service.send_digest("daily")).notifications == 0
+
+
+def test_webhook_channel_requires_url():
+    with pytest.raises(ValueError):
+        AlertCreate(product_id=1, email="b@example.com", threshold_price=10.0, channel="webhook")

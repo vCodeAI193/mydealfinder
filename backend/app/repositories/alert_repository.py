@@ -23,6 +23,17 @@ class AlertRepository:
         result = await self._session.execute(select(Alert).where(Alert.status == "active"))
         return list(result.scalars().all())
 
+    async def list_pending_digest(self, frequency: str) -> list[Alert]:
+        """Triggered alerts of a given frequency not yet delivered (F031)."""
+        result = await self._session.execute(
+            select(Alert).where(
+                Alert.frequency == frequency,
+                Alert.triggered_at.is_not(None),
+                Alert.notified_at.is_(None),
+            )
+        )
+        return list(result.scalars().all())
+
     async def count_open_for(self, email: str, product_id: int) -> int:
         """Number of non-triggered (active or paused) alerts for this pair."""
         result = await self._session.execute(

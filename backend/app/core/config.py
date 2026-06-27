@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     # F043: allow users to delete their own account.
     enable_account_deletion: bool = True
 
+    # F028: SMTP email delivery. When smtp_host is unset, alerts are logged.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str = "alerts@mydealfinder.local"
+    smtp_use_tls: bool = True
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.smtp_host)
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

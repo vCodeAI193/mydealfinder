@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, formatPrice, type Alert } from "@/lib/api";
+import { getStoredUser, onAuthChange } from "@/lib/auth";
 
-// Look up alerts by email and pause/resume them (F032).
+// Look up alerts by email and pause/resume them (F032). Signed-in users get
+// their alerts loaded automatically (F035 coupling).
 export default function AlertManager() {
   const [email, setEmail] = useState("");
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sync = () => {
+      const user = getStoredUser();
+      if (user) {
+        setEmail(user.email);
+        api.myAlerts().then(setAlerts).catch(() => {});
+      }
+    };
+    sync();
+    return onAuthChange(sync);
+  }, []);
 
   async function load(addr: string) {
     if (!addr.trim()) return;
@@ -29,6 +43,7 @@ export default function AlertManager() {
   }
 
   function describe(a: Alert): string {
+    if (a.alert_type === "restock") return "back in stock";
     if (a.alert_type === "percentage") {
       return `${a.threshold_pct}% drop (≤ ${formatPrice(a.effective_threshold, a.currency)})`;
     }
@@ -80,6 +95,12 @@ export default function AlertManager() {
                 <td className="muted">
                   {describe(a)}
                   {a.recurring && <span className="badge" style={{ marginLeft: 6 }}>recurring</span>}
+                  {a.frequency !== "instant" && (
+                    <span className="badge" style={{ marginLeft: 6 }}>{a.frequency}</span>
+                  )}
+                  {a.channel === "webhook" && (
+                    <span className="badge" style={{ marginLeft: 6 }}>webhook</span>
+                  )}
                 </td>
                 <td>
                   <span className="badge">{a.status}</span>

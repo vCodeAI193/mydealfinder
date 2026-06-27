@@ -119,9 +119,15 @@ class Alert(Base):
     status: Mapped[str] = mapped_column(String(16), default="active", index=True)
     armed: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    # Delivery: channel (F030) and digest frequency (F031).
+    channel: Mapped[str] = mapped_column(String(16), default="email")  # email | webhook
+    webhook_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    frequency: Mapped[str] = mapped_column(String(16), default="instant")  # instant | daily | weekly
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     triggered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     triggered_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     product: Mapped[Product] = relationship(back_populates="alerts")
 

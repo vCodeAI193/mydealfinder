@@ -93,11 +93,15 @@ export interface FeatureFlags {
   enable_account_deletion: boolean;
 }
 
+export type AlertType = "absolute" | "percentage" | "restock";
+export type AlertChannel = "email" | "webhook";
+export type AlertFrequency = "instant" | "daily" | "weekly";
+
 export interface Alert {
   id: number;
   product_id: number;
   email: string;
-  alert_type: "absolute" | "percentage";
+  alert_type: AlertType;
   threshold_price: number | null;
   threshold_pct: number | null;
   reference_price: number | null;
@@ -107,19 +111,26 @@ export interface Alert {
   status: "active" | "paused" | "triggered";
   active: boolean;
   armed: boolean;
+  channel: AlertChannel;
+  webhook_url: string | null;
+  frequency: AlertFrequency;
   created_at: string;
   triggered_at: string | null;
   triggered_price: number | null;
+  notified_at: string | null;
 }
 
 export interface AlertCreate {
   product_id: number;
   email: string;
-  alert_type: "absolute" | "percentage";
+  alert_type: AlertType;
   threshold_price?: number;
   threshold_pct?: number;
   recurring?: boolean;
   currency: string;
+  channel?: AlertChannel;
+  webhook_url?: string;
+  frequency?: AlertFrequency;
 }
 
 export interface AlertSuggestion {
@@ -222,6 +233,7 @@ export const api = {
     request<Alert>(`/alerts`, { method: "POST", body: JSON.stringify(body) }),
   listAlerts: (email: string) =>
     request<Alert[]>(`/alerts?email=${encodeURIComponent(email)}`),
+  myAlerts: () => request<Alert[]>(`/me/alerts`),
   pauseAlert: (id: number) => request<Alert>(`/alerts/${id}/pause`, { method: "POST" }),
   resumeAlert: (id: number) => request<Alert>(`/alerts/${id}/resume`, { method: "POST" }),
   alertSuggestion: (productId: number, days = 30) =>

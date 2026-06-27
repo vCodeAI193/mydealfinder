@@ -6,12 +6,14 @@ from fastapi.responses import StreamingResponse
 
 from app.api.deps import (
     AccountServiceDep,
+    AlertServiceDep,
     AuthServiceDep,
     CurrentUserDep,
     WatchlistServiceDep,
 )
 from app.core.config import get_settings
 from app.domain.schemas import (
+    AlertOut,
     AuthResponse,
     PreferencesUpdate,
     UserCredentials,
@@ -51,6 +53,12 @@ async def logout(service: AuthServiceDep, authorization: str | None = Header(def
 @router.get("/auth/me", response_model=UserOut, summary="Current user")
 async def me(user: CurrentUserDep) -> UserOut:
     return UserOut.model_validate(user)
+
+
+@router.get("/me/alerts", response_model=list[AlertOut], summary="Your alerts (F035 coupling)")
+async def my_alerts(user: CurrentUserDep, alerts: AlertServiceDep) -> list[AlertOut]:
+    """List the signed-in user's alerts (keyed by their account email)."""
+    return await alerts.list_for_email(user.email)
 
 
 # ── Preferences (F038–F040) ──

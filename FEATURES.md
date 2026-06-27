@@ -76,11 +76,11 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 |----|---------|------|----------|--------|--------|-------|
 | F025 | Multiple alerts per product | FF | P1 | S | ☑ | Allow several thresholds per product |
 | F026 | Percentage-drop alerts | UP | P1 | S | ☑ | Alert on % drop, not just absolute price |
-| F027 | Back-in-stock alerts | FF | P2 | M | ☐ | Trigger when an out-of-stock offer returns |
-| F028 | Email notification channel | UP | P1 | M | ☐ | Real SMTP delivery (replaces the log notifier) |
+| F027 | Back-in-stock alerts | FF | P2 | M | ☑ | Trigger when an out-of-stock offer returns |
+| F028 | Email notification channel | UP | P1 | M | ☑ | Real SMTP delivery (replaces the log notifier) |
 | F029 | Web push notifications | FF | P2 | L | ☐ | Browser push for triggered alerts |
-| F030 | Chat webhook channel (Telegram/Slack/Discord) | FF | P3 | M | ☐ | Post alerts to a webhook URL |
-| F031 | Alert frequency / digest (instant/daily/weekly) | UP | P2 | M | ☐ | Batch notifications |
+| F030 | Chat webhook channel (Telegram/Slack/Discord) | FF | P3 | M | ☑ | Post alerts to a webhook URL |
+| F031 | Alert frequency / digest (instant/daily/weekly) | UP | P2 | M | ☑ | Batch notifications |
 | F032 | Snooze / pause alerts | UP | P2 | S | ☑ | Temporarily mute an alert |
 | F033 | Recurring (re-arm) alerts | UP | P2 | S | ☑ | Re-activate after firing instead of one-shot |
 | F034 | History-based target-price suggestions | FF | P3 | M | ☑ | Suggest a sensible threshold from history |
@@ -205,14 +205,14 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 33 / 100 complete.**
+**Overall: 37 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
 | 1. Search & Discovery | F001–F009 | 9 | 5 |
 | 2. Price Comparison | F010–F016 | 7 | 6 |
 | 3. Price History & Analytics | F017–F024 | 8 | 6 |
-| 4. Alerts & Notifications | F025–F034 | 10 | 5 |
+| 4. Alerts & Notifications | F025–F034 | 10 | 9 |
 | 5. Accounts & Personalization | F035–F043 | 9 | 9 |
 | 6. Data Sources & Scraping | F044–F050 | 7 | 1 |
 | 7. UI/UX, Theming & Accessibility | F051–F060 | 10 | 1 |
@@ -223,7 +223,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 12. Performance & Caching | F085–F088 | 4 | 0 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **33** |
+| **Total** | **F001–F100** | **100** | **37** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
@@ -232,11 +232,15 @@ F013 (pinned sources), F014 (source ratings), F015 (coupons),
 F017 (history time range), F018 (per-source toggle),
 F019 (min/max/avg markers), F020 (deal score), F021 (price-vs-avg badge),
 F023 (CSV/JSON export), F025 (multiple alerts/limit), F026 (percentage-drop alerts),
+F027 (back-in-stock), F028 (SMTP email), F030 (webhook channel), F031 (digest),
 F032 (snooze/pause), F033 (recurring alerts), F034 (threshold suggestion),
 F035 (registration/login), F036 (guest mode), F037 (watchlist),
 F038 (default currency), F039 (default language), F040 (default sort),
 F041 (settings page), F042 (GDPR export), F043 (account deletion),
 F045 (per-source enable/disable), F051 (light/dark/system theme).
+
+**Only F029 (web push) remains in Alerts** — deferred as it needs a service
+worker + VAPID, worth a dedicated effort.
 
 ### How to work through this backlog
 1. Pick a feature by ID (e.g. "implement F037").

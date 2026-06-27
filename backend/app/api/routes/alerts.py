@@ -7,6 +7,7 @@ from app.domain.schemas import (
     AlertCreate,
     AlertOut,
     AlertSuggestion,
+    DigestResult,
 )
 from app.services.alert_service import AlertLimitError, AlertNotFoundError
 from app.services.price_service import ProductNotFoundError
@@ -75,9 +76,23 @@ async def resume_alert(alert_id: int, service: AlertServiceDep) -> AlertOut:
     summary="Evaluate active alerts against current prices",
 )
 async def check_alerts(service: AlertServiceDep) -> AlertCheckResult:
-    """Trigger any alerts whose product is now at or below the threshold.
+    """Trigger any alerts whose product is now at or below the threshold, or is
+    back in stock. Instant alerts notify immediately; daily/weekly ones are
+    queued for the digest.
 
     In production a scheduler calls this; the MVP exposes it so behaviour is
     easy to demonstrate and test.
     """
     return await service.check_alerts()
+
+
+@router.post(
+    "/digest",
+    response_model=DigestResult,
+    summary="Deliver batched notifications for a frequency (F031)",
+)
+async def send_digest(
+    service: AlertServiceDep,
+    frequency: str = Query("daily", pattern="^(daily|weekly)$"),
+) -> DigestResult:
+    return await service.send_digest(frequency)
