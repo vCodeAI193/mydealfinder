@@ -24,6 +24,19 @@ class Settings(BaseSettings):
 
     # Redis (optional). When unset, caching is silently disabled.
     redis_url: str | None = None
+    # F085/F086: search-result cache time-to-live in seconds (0 disables caching).
+    cache_ttl_seconds: int = 60
+
+    # F082: Python logging level (DEBUG/INFO/WARNING/ERROR).
+    log_level: str = "INFO"
+    # F083: expose a Prometheus /metrics endpoint.
+    enable_metrics: bool = True
+
+    # F084/F046: in-process background scheduler. Disabled by default so tests
+    # and one-off runs do not spawn loops; intervals of 0 disable a given job.
+    scheduler_enabled: bool = False
+    refresh_interval_seconds: int = 0  # F046: re-query sources for known products
+    alert_check_interval_seconds: int = 0  # F084: evaluate alerts on a cadence
 
     # CORS origins allowed to call the API (comma-separated env var).
     cors_origins: str = "http://localhost:3000"

@@ -1,24 +1,33 @@
 """FastAPI application entrypoint."""
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import alerts, auth, products, search
+from app.core import metrics
 from app.core.config import get_settings
 from app.core.database import init_db
+from app.core.logging import setup_logging
 from app.seed import seed_on_startup
+from app.services.scheduler import Scheduler
 
+setup_logging()
 settings = get_settings()
+scheduler = Scheduler()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create tables and seed demo data on startup."""
+    """Create tables, seed demo data, and run the background scheduler."""
     await init_db()
     if settings.seed_on_startup:
         await seed_on_startup()
-    yield
+    scheduler.start()
+    try:
+        yield
+    finally:
+        await scheduler.stop()
 
 
 app = FastAPI(
@@ -49,6 +58,13 @@ app.include_router(auth.router)
 async def config() -> dict[str, object]:
     """Expose the active feature flags so the frontend can adapt its UI."""
     return {"feature_flags": settings.feature_flags}
+
+
+@app.get("/metrics", tags=["meta"], summary="Prometheus metrics (F083)")
+async def prometheus_metrics() -> Response:
+    if not settings.enable_metrics:
+        return Response(status_code=404)
+    return Response(content=metrics.render(), media_type="text/plain; version=0.0.4")
 
 
 @app.get("/health", tags=["meta"], summary="Health check")

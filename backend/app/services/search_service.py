@@ -2,12 +2,14 @@
 import asyncio
 from dataclasses import dataclass
 
+from app.core import metrics
 from app.core.config import get_settings
 from app.domain.models import Product
 from app.domain.schemas import ProductSummary, SearchResponse
 from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
 from app.services import currency as fx
+from app.services.cache import Cache, make_key
 from app.sources.base import PriceSource, SourceOffer
 
 # Supported result orderings (F005).
@@ -45,15 +47,48 @@ class SearchService:
         sources: list[PriceSource],
         product_repo: ProductRepository,
         price_repo: PriceRepository,
+        cache: Cache | None = None,
     ) -> None:
         self._sources = sources
         self._products = product_repo
         self._prices = price_repo
+        self._cache = cache
 
     async def search(
         self, keyword: str, options: SearchOptions | None = None
     ) -> SearchResponse:
         options = options or SearchOptions()
+        metrics.inc("mydealfinder_searches_total")
+
+        cache_key = self._cache_key(keyword, options)
+        if self._cache is not None:
+            cached = await self._cache.get(cache_key)
+            if cached is not None:
+                metrics.inc("mydealfinder_cache_hits_total")
+                return SearchResponse.model_validate_json(cached)
+            metrics.inc("mydealfinder_cache_misses_total")
+
+        response = await self._run_search(keyword, options)
+
+        if self._cache is not None:
+            await self._cache.set(cache_key, response.model_dump_json())
+        return response
+
+    @staticmethod
+    def _cache_key(keyword: str, options: SearchOptions) -> str:
+        # Include the flags that change the output so the key stays correct.
+        settings = get_settings()
+        return make_key(
+            "search",
+            {
+                "q": keyword.strip().lower(),
+                "options": vars(options),
+                "true_price": settings.true_price,
+                "sources": settings.enabled_source_list,
+            },
+        )
+
+    async def _run_search(self, keyword: str, options: SearchOptions) -> SearchResponse:
         offers_by_source = await self._gather_offers(keyword)
 
         # Group all source offers by the product slug so we can build one

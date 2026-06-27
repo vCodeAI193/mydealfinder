@@ -165,6 +165,10 @@ curl -X POST http://localhost:8000/alerts \
 # Send the queued daily digest (a scheduler would call this; F031)
 curl -X POST "http://localhost:8000/alerts/digest?frequency=daily"
 
+# Prometheus metrics (F083). The background scheduler (F084/F046) runs price
+# refresh and alert checks automatically when SCHEDULER_ENABLED=true.
+curl http://localhost:8000/metrics
+
 # Suggest a threshold from price history (F034)
 curl "http://localhost:8000/alerts/suggestion?product_id=1&days=30"
 

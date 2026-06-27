@@ -13,6 +13,7 @@ from app.repositories.product_repository import ProductRepository
 from app.repositories.watchlist_repository import WatchlistRepository
 from app.services.account_service import AccountService
 from app.services.alert_service import AlertService
+from app.services.cache import Cache
 from app.services.auth_service import AuthService
 from app.services.price_service import PriceService
 from app.services.search_service import SearchService
@@ -27,6 +28,7 @@ def get_search_service(session: SessionDep) -> SearchService:
         sources=get_default_sources(),
         product_repo=ProductRepository(session),
         price_repo=PriceRepository(session),
+        cache=Cache(),
     )
 
 

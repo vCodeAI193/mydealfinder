@@ -114,6 +114,11 @@ class ProductRepository:
         )
         return int(result.scalar_one())
 
+    async def list_all(self) -> list[Product]:
+        """Return every known product (used by the scheduled refresh)."""
+        result = await self._session.execute(select(Product))
+        return list(result.scalars().all())
+
     async def search_by_name(self, keyword: str, limit: int = 50) -> list[Product]:
         """Look up already-known products by name (used to serve cached results)."""
         pattern = f"%{keyword.strip().lower()}%"

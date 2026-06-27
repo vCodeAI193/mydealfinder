@@ -105,7 +105,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 |----|---------|------|----------|--------|--------|-------|
 | F044 | Real retailer scraper plugin | FF | P1 | L | ☐ | Implement `PriceSource` against a live site |
 | F045 | Per-source enable / disable | FF | P1 | S | ☑ | Toggle sources in `get_default_sources` via config |
-| F046 | Scheduled price-refresh interval | UP+FF | P1 | M | ☐ | Background refresh cadence |
+| F046 | Scheduled price-refresh interval | UP+FF | P1 | M | ☑ | Background refresh cadence |
 | F047 | Source rate-limit config | FF | P2 | M | ☐ | Throttle requests per source |
 | F048 | Manual "refresh now" button | UP | P2 | S | ☐ | On-demand re-fetch for a product |
 | F049 | Source health dashboard | FF | P3 | M | ☐ | Show last-success / error per source |
@@ -166,16 +166,16 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | F079 | Admin dashboard | FF | P2 | L | ☐ | Operator view of products/sources/alerts |
 | F080 | Feature-flag management UI | FF | P2 | M | ☐ | Toggle the `FF` items at runtime |
 | F081 | Audit log | FF | P3 | M | ☐ | Record significant actions |
-| F082 | Log-level configuration | UP+FF | P2 | S | ☐ | Runtime/log verbosity (`DEBUG` already exists) |
-| F083 | Prometheus metrics endpoint | FF | P3 | S | ☐ | `/metrics` for observability |
-| F084 | Background job scheduler | FF | P1 | M | ☐ | Cron for refresh + `alerts/check` |
+| F082 | Log-level configuration | UP+FF | P2 | S | ☑ | Runtime/log verbosity (`DEBUG` already exists) |
+| F083 | Prometheus metrics endpoint | FF | P3 | S | ☑ | `/metrics` for observability |
+| F084 | Background job scheduler | FF | P1 | M | ☑ | Cron for refresh + `alerts/check` |
 
 ## 12. Performance & Caching
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F085 | Redis-backed search cache | FF | P2 | M | ☐ | Cache hot searches (`REDIS_URL` already wired) |
-| F086 | Configurable cache TTL | UP+FF | P2 | S | ☐ | Tune cache lifetime |
+| F085 | Redis-backed search cache | FF | P2 | M | ☑ | Cache hot searches (`REDIS_URL` already wired) |
+| F086 | Configurable cache TTL | UP+FF | P2 | S | ☑ | Tune cache lifetime |
 | F087 | Pagination & response limits | UP | P2 | S | ☐ | Bound large responses |
 | F088 | ETag / conditional requests | FF | P3 | M | ☐ | Cheap revalidation for clients |
 
@@ -205,7 +205,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 37 / 100 complete.**
+**Overall: 43 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
@@ -214,16 +214,16 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 3. Price History & Analytics | F017–F024 | 8 | 6 |
 | 4. Alerts & Notifications | F025–F034 | 10 | 9 |
 | 5. Accounts & Personalization | F035–F043 | 9 | 9 |
-| 6. Data Sources & Scraping | F044–F050 | 7 | 1 |
+| 6. Data Sources & Scraping | F044–F050 | 7 | 2 |
 | 7. UI/UX, Theming & Accessibility | F051–F060 | 10 | 1 |
 | 8. Internationalization | F061–F065 | 5 | 0 |
 | 9. Sharing & Social | F066–F071 | 6 | 0 |
 | 10. API & Integrations | F072–F078 | 7 | 0 |
-| 11. Admin & Ops | F079–F084 | 6 | 0 |
-| 12. Performance & Caching | F085–F088 | 4 | 0 |
+| 11. Admin & Ops | F079–F084 | 6 | 3 |
+| 12. Performance & Caching | F085–F088 | 4 | 2 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **37** |
+| **Total** | **F001–F100** | **100** | **43** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
@@ -237,7 +237,9 @@ F032 (snooze/pause), F033 (recurring alerts), F034 (threshold suggestion),
 F035 (registration/login), F036 (guest mode), F037 (watchlist),
 F038 (default currency), F039 (default language), F040 (default sort),
 F041 (settings page), F042 (GDPR export), F043 (account deletion),
-F045 (per-source enable/disable), F051 (light/dark/system theme).
+F045 (per-source enable/disable), F046 (scheduled refresh), F051 (light/dark/system theme),
+F082 (log-level config), F083 (Prometheus metrics), F084 (background scheduler),
+F085 (Redis search cache), F086 (cache TTL).
 
 **Only F029 (web push) remains in Alerts** — deferred as it needs a service
 worker + VAPID, worth a dedicated effort.

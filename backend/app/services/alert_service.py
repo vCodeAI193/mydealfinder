@@ -1,6 +1,7 @@
 """Price-alert business logic: registration, evaluation, and lifecycle."""
 from datetime import datetime, timezone
 
+from app.core import metrics
 from app.core.config import get_settings
 from app.domain.models import Alert
 from app.domain.schemas import (
@@ -104,6 +105,7 @@ class AlertService:
         """
         active = await self._alerts.list_active()
         triggered: list[AlertOut] = []
+        metrics.inc("mydealfinder_alert_checks_total")
 
         for alert in active:
             condition_met, price = await self._evaluate(alert)
@@ -118,6 +120,7 @@ class AlertService:
                     alert.armed = False  # quiet until the condition clears
                 else:
                     alert.status = "triggered"
+                metrics.inc("mydealfinder_alerts_triggered_total")
                 triggered.append(AlertOut.model_validate(alert))
             elif not alert.armed and not condition_met:
                 alert.armed = True  # re-arm recurring alert; no notification
