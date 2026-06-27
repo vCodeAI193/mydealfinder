@@ -84,12 +84,37 @@ export interface Alert {
   id: number;
   product_id: number;
   email: string;
-  threshold_price: number;
+  alert_type: "absolute" | "percentage";
+  threshold_price: number | null;
+  threshold_pct: number | null;
+  reference_price: number | null;
+  effective_threshold: number | null;
   currency: string;
+  recurring: boolean;
+  status: "active" | "paused" | "triggered";
   active: boolean;
+  armed: boolean;
   created_at: string;
   triggered_at: string | null;
   triggered_price: number | null;
+}
+
+export interface AlertCreate {
+  product_id: number;
+  email: string;
+  alert_type: "absolute" | "percentage";
+  threshold_price?: number;
+  threshold_pct?: number;
+  recurring?: boolean;
+  currency: string;
+}
+
+export interface AlertSuggestion {
+  product_id: number;
+  current_price: number | null;
+  avg_price: number | null;
+  suggested_threshold: number | null;
+  window_days: number | null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -138,13 +163,14 @@ export const api = {
     if (days) params.set("days", String(days));
     return `${API_URL}/products/${id}/history/export?${params.toString()}`;
   },
-  createAlert: (body: {
-    product_id: number;
-    email: string;
-    threshold_price: number;
-    currency: string;
-  }) =>
+  createAlert: (body: AlertCreate) =>
     request<Alert>(`/alerts`, { method: "POST", body: JSON.stringify(body) }),
+  listAlerts: (email: string) =>
+    request<Alert[]>(`/alerts?email=${encodeURIComponent(email)}`),
+  pauseAlert: (id: number) => request<Alert>(`/alerts/${id}/pause`, { method: "POST" }),
+  resumeAlert: (id: number) => request<Alert>(`/alerts/${id}/resume`, { method: "POST" }),
+  alertSuggestion: (productId: number, days = 30) =>
+    request<AlertSuggestion>(`/alerts/suggestion?product_id=${productId}&days=${days}`),
 };
 
 export function formatPrice(value: number | null, currency: string | null): string {

@@ -94,3 +94,117 @@ async def test_threshold_boundary_is_inclusive(alert_repo, product_repo):
 
     # Price exactly at threshold should trigger (<=).
     assert len(result.triggered) == 1
+
+
+@pytest.mark.asyncio
+async def test_percentage_alert_uses_creation_price_as_reference(alert_repo, product_repo):
+    product = await _make_product(product_repo, price=100.0)
+    service = AlertService(alert_repo, product_repo)
+
+    # 10% drop alert created at price 100 → effective threshold 90.
+    out = await service.create_alert(
+        AlertCreate(
+            product_id=product.id,
+            email="b@example.com",
+            alert_type="percentage",
+            threshold_pct=10,
+        )
+    )
+    assert out.reference_price == 100.0
+    assert out.effective_threshold == 90.0
+
+    # Price drops to 95 → above 90 → no trigger.
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=95.0, currency="USD", in_stock=True
+    )
+    assert (await service.check_alerts()).triggered == []
+
+    # Price drops to 88 → below 90 → trigger.
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=88.0, currency="USD", in_stock=True
+    )
+    assert len((await service.check_alerts()).triggered) == 1
+
+
+@pytest.mark.asyncio
+async def test_recurring_alert_refires_after_price_recovers(alert_repo, product_repo):
+    product = await _make_product(product_repo, price=80.0)
+    service = AlertService(alert_repo, product_repo)
+    await service.create_alert(
+        AlertCreate(
+            product_id=product.id, email="b@example.com", threshold_price=100.0, recurring=True
+        )
+    )
+
+    # First drop fires.
+    assert len((await service.check_alerts()).triggered) == 1
+    # Still below threshold but disarmed → no repeat notification.
+    assert (await service.check_alerts()).triggered == []
+
+    # Price recovers above threshold → silently re-arms (no trigger).
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=120.0, currency="USD", in_stock=True
+    )
+    assert (await service.check_alerts()).triggered == []
+
+    # Drops again → fires a second time.
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=90.0, currency="USD", in_stock=True
+    )
+    assert len((await service.check_alerts()).triggered) == 1
+
+
+@pytest.mark.asyncio
+async def test_pause_and_resume_alert(alert_repo, product_repo):
+    product = await _make_product(product_repo, price=50.0)
+    service = AlertService(alert_repo, product_repo)
+    created = await service.create_alert(
+        AlertCreate(product_id=product.id, email="b@example.com", threshold_price=100.0)
+    )
+
+    paused = await service.pause_alert(created.id)
+    assert paused.status == "paused"
+    # Paused alert is not evaluated.
+    assert (await service.check_alerts()).checked == 0
+
+    resumed = await service.resume_alert(created.id)
+    assert resumed.status == "active"
+    assert len((await service.check_alerts()).triggered) == 1
+
+
+@pytest.mark.asyncio
+async def test_per_product_alert_limit(alert_repo, product_repo, monkeypatch):
+    from app.services import alert_service as mod
+
+    product = await _make_product(product_repo, price=100.0)
+    service = AlertService(alert_repo, product_repo)
+
+    # Cap at 1 alert per product/email (F025).
+    monkeypatch.setattr(mod.get_settings(), "max_alerts_per_product", 1)
+
+    await service.create_alert(
+        AlertCreate(product_id=product.id, email="b@example.com", threshold_price=90.0)
+    )
+    with pytest.raises(mod.AlertLimitError):
+        await service.create_alert(
+            AlertCreate(product_id=product.id, email="b@example.com", threshold_price=80.0)
+        )
+
+
+@pytest.mark.asyncio
+async def test_suggest_threshold(product_repo, price_repo):
+    from app.services.price_service import PriceService
+
+    product = await product_repo.upsert_product(
+        slug="w", name="W", brand=None, category=None, description=None, image_url=None
+    )
+    await product_repo.upsert_offer(
+        product_id=product.id, source="a", url="http://a", price=100.0, currency="USD", in_stock=True
+    )
+    for price in (120.0, 100.0):
+        await price_repo.add_point(product_id=product.id, source="a", price=price, currency="USD")
+
+    suggestion = await PriceService(product_repo, price_repo).suggest_threshold(product.id)
+
+    # min(current=100, avg=110) * 0.97 = 97.0
+    assert suggestion.suggested_threshold == 97.0

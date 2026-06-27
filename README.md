@@ -141,10 +141,22 @@ curl "http://localhost:8000/products/1/analytics?days=30"
 # Export price history as CSV or JSON (F023)
 curl "http://localhost:8000/products/1/history/export?format=csv&days=30"
 
-# Create a price alert
+# Create an absolute price alert
 curl -X POST http://localhost:8000/alerts \
   -H "Content-Type: application/json" \
   -d '{"product_id":1,"email":"you@example.com","threshold_price":300}'
+
+# Create a recurring percentage-drop alert (notify on a 10% drop) — F026/F033
+curl -X POST http://localhost:8000/alerts \
+  -H "Content-Type: application/json" \
+  -d '{"product_id":1,"email":"you@example.com","alert_type":"percentage","threshold_pct":10,"recurring":true}'
+
+# Suggest a threshold from price history (F034)
+curl "http://localhost:8000/alerts/suggestion?product_id=1&days=30"
+
+# Snooze / resume an alert (F032)
+curl -X POST http://localhost:8000/alerts/1/pause
+curl -X POST http://localhost:8000/alerts/1/resume
 
 # Evaluate alerts (a scheduler would call this on a cron in production)
 curl -X POST http://localhost:8000/alerts/check

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.domain.models import PricePoint
 from app.domain.schemas import (
+    AlertSuggestion,
     OfferOut,
     PriceAnalytics,
     PriceHistoryOut,
@@ -117,6 +118,23 @@ class PriceService:
             avg_price=round(avg, 2),
             pct_vs_avg=pct_vs_avg,
             deal_score=deal_score,
+        )
+
+    async def suggest_threshold(self, product_id: int, days: int | None = 30) -> AlertSuggestion:
+        """Suggest a sensible alert threshold from recent prices (F034).
+
+        Heuristic: aim a few percent below the lower of the current price and
+        the window average — a realistic "good deal" target the price has a
+        decent chance of hitting."""
+        analytics = await self.get_analytics(product_id, days=days)
+        candidates = [p for p in (analytics.current_price, analytics.avg_price) if p is not None]
+        suggested = round(min(candidates) * 0.97, 2) if candidates else None
+        return AlertSuggestion(
+            product_id=product_id,
+            current_price=analytics.current_price,
+            avg_price=analytics.avg_price,
+            suggested_threshold=suggested,
+            window_days=days,
         )
 
     async def _load_history(self, product_id: int, days: int | None) -> list[PricePoint]:

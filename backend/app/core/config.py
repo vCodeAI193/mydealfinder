@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     fuzzy_search: bool = False
     # F045: which sources to query, comma-separated. Empty means "all".
     enabled_sources: str = "amazon,ebay,walmart"
+    # F025: max open alerts per (email, product). 0 means unlimited.
+    max_alerts_per_product: int = 0
 
     @property
     def cors_origin_list(self) -> list[str]:

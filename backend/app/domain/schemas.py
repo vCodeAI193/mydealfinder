@@ -1,7 +1,8 @@
 """Pydantic schemas — the API contract (request/response models)."""
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class OfferOut(BaseModel):
@@ -83,12 +84,32 @@ class SearchResponse(BaseModel):
 
 
 class AlertCreate(BaseModel):
-    """Request body to register a price alert."""
+    """Request body to register a price alert.
+
+    Use `alert_type="absolute"` with `threshold_price`, or
+    `alert_type="percentage"` with `threshold_pct` (the % drop from the price at
+    creation time) — F026. Set `recurring=true` to re-fire on future drops (F033).
+    """
 
     product_id: int
     email: EmailStr
-    threshold_price: float = Field(gt=0, description="Notify when best price drops below this value.")
+    alert_type: Literal["absolute", "percentage"] = "absolute"
+    threshold_price: float | None = Field(
+        default=None, gt=0, description="Absolute target price (absolute alerts)."
+    )
+    threshold_pct: float | None = Field(
+        default=None, gt=0, le=100, description="Percent drop from current price (percentage alerts)."
+    )
+    recurring: bool = False
     currency: str = Field(default="USD", min_length=3, max_length=3)
+
+    @model_validator(mode="after")
+    def _check_threshold(self) -> "AlertCreate":
+        if self.alert_type == "absolute" and self.threshold_price is None:
+            raise ValueError("threshold_price is required for absolute alerts")
+        if self.alert_type == "percentage" and self.threshold_pct is None:
+            raise ValueError("threshold_pct is required for percentage alerts")
+        return self
 
 
 class AlertOut(BaseModel):
@@ -97,12 +118,29 @@ class AlertOut(BaseModel):
     id: int
     product_id: int
     email: EmailStr
-    threshold_price: float
+    alert_type: str
+    threshold_price: float | None = None
+    threshold_pct: float | None = None
+    reference_price: float | None = None
+    effective_threshold: float | None = None
     currency: str
+    recurring: bool
+    status: str
     active: bool
+    armed: bool
     created_at: datetime
     triggered_at: datetime | None = None
     triggered_price: float | None = None
+
+
+class AlertSuggestion(BaseModel):
+    """A suggested alert threshold derived from price history (F034)."""
+
+    product_id: int
+    current_price: float | None = None
+    avg_price: float | None = None
+    suggested_threshold: float | None = None
+    window_days: int | None = None
 
 
 class AlertCheckResult(BaseModel):

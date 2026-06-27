@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import PriceChart from "@/components/PriceChart";
 import AlertForm from "@/components/AlertForm";
+import AlertManager from "@/components/AlertManager";
 
 // History windows offered in the UI (F017). null = all history.
 const RANGES: { label: string; days: number | null }[] = [
@@ -200,6 +201,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           currency={best?.currency || "USD"}
           suggested={best?.price ?? null}
         />
+        <div style={{ marginTop: 20, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+          <AlertManager />
+        </div>
       </section>
     </main>
   );

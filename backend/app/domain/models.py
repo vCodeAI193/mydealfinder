@@ -85,18 +85,48 @@ class PricePoint(Base):
 
 
 class Alert(Base):
-    """A user's request to be notified when a product drops below a threshold."""
+    """A user's request to be notified when a product price drops.
+
+    Supports absolute thresholds and percentage drops (F026), a snooze/pause
+    state (F032), and recurring re-arming (F033). The lifecycle is captured by
+    ``status`` (active | paused | triggered) plus ``armed``: a recurring alert
+    stays ``active`` but ``armed=False`` after firing until the price rises back
+    above its threshold, preventing repeated notifications.
+    """
 
     __tablename__ = "alerts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
     email: Mapped[str] = mapped_column(String(320), index=True)
-    threshold_price: Mapped[float] = mapped_column(Float)
+
+    # "absolute" → threshold_price; "percentage" → drop of threshold_pct from reference_price.
+    alert_type: Mapped[str] = mapped_column(String(16), default="absolute")
+    threshold_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    threshold_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
+    reference_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     currency: Mapped[str] = mapped_column(String(3), default="USD")
-    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    recurring: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[str] = mapped_column(String(16), default="active", index=True)
+    armed: Mapped[bool] = mapped_column(Boolean, default=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     triggered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     triggered_price: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     product: Mapped[Product] = relationship(back_populates="alerts")
+
+    @property
+    def active(self) -> bool:
+        """Back-compat convenience: whether the alert is still being evaluated."""
+        return self.status == "active"
+
+    @property
+    def effective_threshold(self) -> float | None:
+        """The absolute price at or below which this alert fires."""
+        if self.alert_type == "percentage":
+            if self.reference_price is None or self.threshold_pct is None:
+                return None
+            return round(self.reference_price * (1 - self.threshold_pct / 100), 2)
+        return self.threshold_price
