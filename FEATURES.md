@@ -163,9 +163,9 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F079 | Admin dashboard | FF | P2 | L | ☐ | Operator view of products/sources/alerts |
-| F080 | Feature-flag management UI | FF | P2 | M | ☐ | Toggle the `FF` items at runtime |
-| F081 | Audit log | FF | P3 | M | ☐ | Record significant actions |
+| F079 | Admin dashboard | FF | P2 | L | ☑ | Operator view of products/sources/alerts |
+| F080 | Feature-flag management UI | FF | P2 | M | ☑ | Toggle the `FF` items at runtime |
+| F081 | Audit log | FF | P3 | M | ☑ | Record significant actions |
 | F082 | Log-level configuration | UP+FF | P2 | S | ☑ | Runtime/log verbosity (`DEBUG` already exists) |
 | F083 | Prometheus metrics endpoint | FF | P3 | S | ☑ | `/metrics` for observability |
 | F084 | Background job scheduler | FF | P1 | M | ☑ | Cron for refresh + `alerts/check` |
@@ -205,7 +205,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 48 / 100 complete.**
+**Overall: 51 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
@@ -219,11 +219,11 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 8. Internationalization | F061–F065 | 5 | 0 |
 | 9. Sharing & Social | F066–F071 | 6 | 0 |
 | 10. API & Integrations | F072–F078 | 7 | 0 |
-| 11. Admin & Ops | F079–F084 | 6 | 3 |
+| 11. Admin & Ops | F079–F084 | 6 | 6 |
 | 12. Performance & Caching | F085–F088 | 4 | 2 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **48** |
+| **Total** | **F001–F100** | **100** | **51** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
@@ -240,6 +240,7 @@ F041 (settings page), F042 (GDPR export), F043 (account deletion),
 F044 (real HTTP source), F045 (per-source enable/disable), F046 (scheduled refresh),
 F047 (source rate-limit), F048 (manual refresh), F049 (source health), F050 (custom sources),
 F051 (light/dark/system theme),
+F079 (admin dashboard), F080 (feature-flag UI), F081 (audit log),
 F082 (log-level config), F083 (Prometheus metrics), F084 (background scheduler),
 F085 (Redis search cache), F086 (cache TTL).
 

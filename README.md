@@ -173,6 +173,12 @@ curl http://localhost:8000/metrics
 curl -X POST http://localhost:8000/products/1/refresh
 curl http://localhost:8000/sources/health
 
+# Admin (F079-F081): set ADMIN_EMAILS, then with an admin token —
+curl http://localhost:8000/admin/overview -H "Authorization: Bearer $TOKEN"   # dashboard
+curl -X PUT http://localhost:8000/admin/flags -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" -d '{"name":"true_price","value":true}' # toggle a flag
+curl http://localhost:8000/admin/audit -H "Authorization: Bearer $TOKEN"      # audit log
+
 # Suggest a threshold from price history (F034)
 curl "http://localhost:8000/alerts/suggestion?product_id=1&days=30"
 

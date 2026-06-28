@@ -30,6 +30,11 @@ export default function AuthWidget() {
 
   return (
     <div className="row" style={{ gap: 8, alignItems: "center" }}>
+      {user.is_admin && (
+        <Link href="/admin" className="badge" title="Admin dashboard">
+          ⚙ Admin
+        </Link>
+      )}
       <Link href="/watchlist" className="badge" title="Your watchlist">
         ♥ Watchlist
       </Link>

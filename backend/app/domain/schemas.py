@@ -196,6 +196,7 @@ class UserOut(BaseModel):
     default_currency: str
     default_sort: str
     language: str
+    is_admin: bool = False
 
 
 class AuthResponse(BaseModel):
@@ -219,6 +220,33 @@ class WatchlistItemOut(BaseModel):
 
 class WatchlistAdd(BaseModel):
     product_id: int
+
+
+# ── Admin (F079–F081) ───────────────────────────────────────────────────────
+
+
+class AuditEntry(BaseModel):
+    id: int
+    created_at: datetime
+    actor: str
+    action: str
+    detail: str | None = None
+
+
+class AdminOverview(BaseModel):
+    """Aggregate stats for the admin dashboard (F079)."""
+
+    products: int
+    offers: int
+    alerts_active: int
+    users: int
+    sources: list[dict]
+    recent_audit: list[AuditEntry]
+
+
+class FlagUpdate(BaseModel):
+    name: str
+    value: bool
 
 
 class AlertCheckResult(BaseModel):

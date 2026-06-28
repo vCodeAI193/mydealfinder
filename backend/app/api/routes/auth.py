@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from app.api.deps import (
     AccountServiceDep,
     AlertServiceDep,
+    AuditServiceDep,
     AuthServiceDep,
     CurrentUserDep,
     WatchlistServiceDep,
@@ -29,19 +30,27 @@ router = APIRouter(tags=["accounts"])
 
 
 @router.post("/auth/register", response_model=AuthResponse, status_code=201, summary="Register (F035)")
-async def register(creds: UserCredentials, service: AuthServiceDep) -> AuthResponse:
+async def register(
+    creds: UserCredentials, service: AuthServiceDep, audit: AuditServiceDep
+) -> AuthResponse:
     try:
-        return await service.register(str(creds.email), creds.password)
+        result = await service.register(str(creds.email), creds.password)
     except EmailTakenError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    await audit.record(actor=str(creds.email), action="user.register")
+    return result
 
 
 @router.post("/auth/login", response_model=AuthResponse, summary="Log in (F035)")
-async def login(creds: UserCredentials, service: AuthServiceDep) -> AuthResponse:
+async def login(
+    creds: UserCredentials, service: AuthServiceDep, audit: AuditServiceDep
+) -> AuthResponse:
     try:
-        return await service.login(str(creds.email), creds.password)
+        result = await service.login(str(creds.email), creds.password)
     except InvalidCredentialsError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+    await audit.record(actor=str(creds.email), action="user.login")
+    return result
 
 
 @router.post("/auth/logout", status_code=204, summary="Log out")
@@ -123,7 +132,10 @@ async def export_data(user: CurrentUserDep, service: AccountServiceDep):
 
 
 @router.delete("/me", status_code=204, summary="Delete your account and all data (F043)")
-async def delete_account(user: CurrentUserDep, service: AccountServiceDep) -> None:
+async def delete_account(
+    user: CurrentUserDep, service: AccountServiceDep, audit: AuditServiceDep
+) -> None:
     if not get_settings().enable_account_deletion:
         raise HTTPException(status_code=403, detail="Account deletion is disabled")
+    await audit.record(actor=user.email, action="account.delete")
     await service.delete_account(user)

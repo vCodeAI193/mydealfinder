@@ -148,6 +148,24 @@ export interface User {
   default_currency: string;
   default_sort: string;
   language: string;
+  is_admin: boolean;
+}
+
+export interface AuditEntry {
+  id: number;
+  created_at: string;
+  actor: string;
+  action: string;
+  detail: string | null;
+}
+
+export interface AdminOverview {
+  products: number;
+  offers: number;
+  alerts_active: number;
+  users: number;
+  sources: SourceHealth[];
+  recent_audit: AuditEntry[];
 }
 
 export interface AuthResponse {
@@ -272,6 +290,16 @@ export const api = {
       method: "POST",
     }),
   sourcesHealth: () => request<SourcesHealth>(`/sources/health`),
+
+  // Admin (F079–F081)
+  adminOverview: () => request<AdminOverview>(`/admin/overview`),
+  adminFlags: () => request<Record<string, boolean>>(`/admin/flags`),
+  setAdminFlag: (name: string, value: boolean) =>
+    request<Record<string, boolean>>(`/admin/flags`, {
+      method: "PUT",
+      body: JSON.stringify({ name, value }),
+    }),
+  adminAudit: (limit = 50) => request<AuditEntry[]>(`/admin/audit?limit=${limit}`),
 };
 
 export interface SourceHealth {

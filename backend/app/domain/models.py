@@ -146,6 +146,19 @@ class Alert(Base):
         return self.threshold_price
 
 
+class AuditLog(Base):
+    """A record of a significant action for the admin audit trail (F081)."""
+
+    __tablename__ = "audit_logs"
+    __table_args__ = (Index("ix_audit_created", "created_at"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    actor: Mapped[str] = mapped_column(String(320), default="anonymous", index=True)
+    action: Mapped[str] = mapped_column(String(64), index=True)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class User(Base):
     """A registered user (F035). Preferences (F038–F040) live on the user row."""
 
@@ -167,6 +180,12 @@ class User(Base):
     watchlist: Mapped[list["WatchlistItem"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+
+    @property
+    def is_admin(self) -> bool:
+        from app.core.config import get_settings
+
+        return self.email.lower() in get_settings().admin_email_list
 
 
 class UserSession(Base):

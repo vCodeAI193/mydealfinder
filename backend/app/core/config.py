@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     # Seed the database with demo data on startup.
     seed_on_startup: bool = True
 
+    # F079/F080/F081: comma-separated emails granted admin access.
+    admin_emails: str = ""
+
+    @property
+    def admin_email_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
     # ── Feature flags (FF) ──────────────────────────────────────────────────
     # F001: tolerate small typos in search queries.
     fuzzy_search: bool = False

@@ -1,7 +1,7 @@
 """Price-alert endpoints."""
 from fastapi import APIRouter, HTTPException, Query
 
-from app.api.deps import AlertServiceDep, PriceServiceDep
+from app.api.deps import AlertServiceDep, AuditServiceDep, PriceServiceDep
 from app.domain.schemas import (
     AlertCheckResult,
     AlertCreate,
@@ -21,13 +21,21 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
     status_code=201,
     summary="Create a price alert (absolute or percentage, optionally recurring)",
 )
-async def create_alert(payload: AlertCreate, service: AlertServiceDep) -> AlertOut:
+async def create_alert(
+    payload: AlertCreate, service: AlertServiceDep, audit: AuditServiceDep
+) -> AlertOut:
     try:
-        return await service.create_alert(payload)
+        result = await service.create_alert(payload)
     except ProductNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except AlertLimitError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    await audit.record(
+        actor=str(payload.email),
+        action="alert.create",
+        detail={"product_id": payload.product_id, "type": payload.alert_type},
+    )
+    return result
 
 
 @router.get("", response_model=list[AlertOut], summary="List alerts for an email")
