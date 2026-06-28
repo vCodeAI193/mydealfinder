@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import alerts, auth, products, search
+from app.api.routes import alerts, auth, products, search, sources
 from app.core import metrics
 from app.core.config import get_settings
 from app.core.database import init_db
@@ -52,6 +52,7 @@ app.include_router(search.router)
 app.include_router(products.router)
 app.include_router(alerts.router)
 app.include_router(auth.router)
+app.include_router(sources.router)
 
 
 @app.get("/config", tags=["meta"], summary="Public client configuration & feature flags")

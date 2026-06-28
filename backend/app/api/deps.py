@@ -16,6 +16,7 @@ from app.services.alert_service import AlertService
 from app.services.cache import Cache
 from app.services.auth_service import AuthService
 from app.services.price_service import PriceService
+from app.services.refresh_service import RefreshService
 from app.services.search_service import SearchService
 from app.services.watchlist_service import WatchlistService
 from app.sources import get_default_sources
@@ -36,6 +37,12 @@ def get_price_service(session: SessionDep) -> PriceService:
     return PriceService(
         product_repo=ProductRepository(session),
         price_repo=PriceRepository(session),
+    )
+
+
+def get_refresh_service(session: SessionDep) -> RefreshService:
+    return RefreshService(
+        get_default_sources(), ProductRepository(session), PriceRepository(session)
     )
 
 
@@ -64,6 +71,7 @@ def get_account_service(session: SessionDep) -> AccountService:
 
 SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]
 PriceServiceDep = Annotated[PriceService, Depends(get_price_service)]
+RefreshServiceDep = Annotated[RefreshService, Depends(get_refresh_service)]
 AlertServiceDep = Annotated[AlertService, Depends(get_alert_service)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 WatchlistServiceDep = Annotated[WatchlistService, Depends(get_watchlist_service)]

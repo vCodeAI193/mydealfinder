@@ -54,7 +54,11 @@ async def seed_database(session: AsyncSession) -> bool:
         )
 
         for source in sources:
-            offers = await source.search(item.name)
+            try:
+                offers = await source.search(item.name)
+            except Exception:
+                # A flaky/unreachable source must never break seeding.
+                continue
             offer = next((o for o in offers if o.slug == item.slug), None)
             if offer is None:
                 continue

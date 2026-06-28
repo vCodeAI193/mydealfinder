@@ -120,7 +120,21 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       </div>
 
       <section className="panel">
-        <h2>Price comparison</h2>
+        <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ margin: 0 }}>Price comparison</h2>
+          <button
+            type="button"
+            className="secondary"
+            style={{ padding: "6px 12px", fontSize: 13 }}
+            onClick={async () => {
+              const updated = await api.refreshProduct(product.id, getCurrency());
+              setProduct(updated);
+            }}
+            title="Re-query all sources for the latest prices"
+          >
+            ↻ Refresh prices
+          </button>
+        </div>
         <table>
           <thead>
             <tr>

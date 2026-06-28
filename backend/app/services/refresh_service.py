@@ -29,3 +29,12 @@ class RefreshService:
             await self._search.search(name)
         metrics.inc("mydealfinder_price_refreshes_total", len(names))
         return len(names)
+
+    async def refresh_product(self, product_id: int) -> bool:
+        """Re-query sources for a single product on demand (F048)."""
+        product = await self._products.get_with_offers(product_id)
+        if product is None:
+            return False
+        await self._search.search(product.name)
+        metrics.inc("mydealfinder_price_refreshes_total", 1)
+        return True

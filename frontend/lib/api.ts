@@ -265,7 +265,29 @@ export const api = {
     request<void>(`/me/watchlist/${productId}`, { method: "DELETE" }),
   exportData: () => request<unknown>(`/me/export`),
   deleteAccount: () => request<void>(`/me`, { method: "DELETE" }),
+
+  // Data sources (F048/F049)
+  refreshProduct: (id: number, currency?: string) =>
+    request<ProductDetail>(`/products/${id}/refresh${currency ? `?currency=${currency}` : ""}`, {
+      method: "POST",
+    }),
+  sourcesHealth: () => request<SourcesHealth>(`/sources/health`),
 };
+
+export interface SourceHealth {
+  source: string;
+  status: "ok" | "error" | "unknown";
+  ok_count: number;
+  error_count: number;
+  last_ok?: string | null;
+  last_error?: string | null;
+  last_error_message?: string | null;
+}
+
+export interface SourcesHealth {
+  rate_limit_per_minute: number;
+  sources: SourceHealth[];
+}
 
 export function formatPrice(value: number | null, currency: string | null): string {
   if (value == null) return "—";

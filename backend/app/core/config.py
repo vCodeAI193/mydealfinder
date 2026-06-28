@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     fuzzy_search: bool = False
     # F045: which sources to query, comma-separated. Empty means "all".
     enabled_sources: str = "amazon,ebay,walmart"
+    # F047: per-source rate limit (requests/minute). 0 disables limiting.
+    source_rate_limit_per_minute: int = 0
+    # F050: JSON array of custom HTTP sources, e.g.
+    # [{"name":"demoapi","url_template":"https://.../search?q={query}","results_path":"products"}]
+    custom_sources: str = ""
     # F025: max open alerts per (email, product). 0 means unlimited.
     max_alerts_per_product: int = 0
     # F011: rank/compare offers by shipping-inclusive total price.

@@ -169,6 +169,10 @@ curl -X POST "http://localhost:8000/alerts/digest?frequency=daily"
 # refresh and alert checks automatically when SCHEDULER_ENABLED=true.
 curl http://localhost:8000/metrics
 
+# Refresh one product's prices on demand (F048) & view per-source health (F049)
+curl -X POST http://localhost:8000/products/1/refresh
+curl http://localhost:8000/sources/health
+
 # Suggest a threshold from price history (F034)
 curl "http://localhost:8000/alerts/suggestion?product_id=1&days=30"
 
@@ -222,3 +226,11 @@ Adding a real retailer is a one-class change — implement `PriceSource.search()
 in `backend/app/sources/`, then register it in `get_default_sources()`. The
 service layer, repositories, API, and UI need no changes because every source
 returns the same normalized `SourceOffer` shape.
+
+Two zero-code options already exist:
+
+- **Built-in HTTP source (F044):** `HttpJsonSource` fetches offers from any
+  JSON API. Enable the bundled example by adding `demoapi` to `ENABLED_SOURCES`.
+- **Custom sources (F050):** declare extra HTTP sources in `CUSTOM_SOURCES` as a
+  JSON array — no code changes. Per-source rate limiting (`SOURCE_RATE_LIMIT_PER_MINUTE`,
+  F047) and health (`GET /sources/health`, F049) apply automatically.

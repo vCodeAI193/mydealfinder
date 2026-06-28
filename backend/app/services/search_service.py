@@ -10,6 +10,7 @@ from app.repositories.price_repository import PriceRepository
 from app.repositories.product_repository import ProductRepository
 from app.services import currency as fx
 from app.services.cache import Cache, make_key
+from app.sources import health
 from app.sources.base import PriceSource, SourceOffer
 
 # Supported result orderings (F005).
@@ -153,14 +154,20 @@ class SearchService:
         return summaries[start : start + options.page_size]
 
     async def _gather_offers(self, keyword: str) -> dict[str, list[SourceOffer]]:
-        """Query every source concurrently; a failing source yields no offers."""
+        """Query every source concurrently; a failing source yields no offers and
+        is recorded as unhealthy (F049)."""
         results = await asyncio.gather(
             *(source.search(keyword) for source in self._sources),
             return_exceptions=True,
         )
         out: dict[str, list[SourceOffer]] = {}
         for source, result in zip(self._sources, results):
-            out[source.name] = [] if isinstance(result, BaseException) else result
+            if isinstance(result, BaseException):
+                health.record_error(source.name, str(result))
+                out[source.name] = []
+            else:
+                health.record_ok(source.name, len(result))
+                out[source.name] = result
         return out
 
     async def _persist_product_and_offers(

@@ -5,7 +5,7 @@ import io
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
-from app.api.deps import PriceServiceDep
+from app.api.deps import PriceServiceDep, RefreshServiceDep
 from app.domain.schemas import (
     OfferOut,
     PriceAnalytics,
@@ -43,6 +43,23 @@ async def get_product(
         )
     except ProductNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post(
+    "/{product_id}/refresh",
+    response_model=ProductDetail,
+    summary="Re-query sources for this product now (F048)",
+)
+async def refresh_product(
+    product_id: int,
+    refresh: RefreshServiceDep,
+    service: PriceServiceDep,
+    currency: str | None = Currency,
+) -> ProductDetail:
+    refreshed = await refresh.refresh_product(product_id)
+    if not refreshed:
+        raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
+    return await service.get_product_detail(product_id, currency=currency)
 
 
 @router.get(

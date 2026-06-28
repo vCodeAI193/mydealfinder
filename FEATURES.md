@@ -103,13 +103,13 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F044 | Real retailer scraper plugin | FF | P1 | L | ☐ | Implement `PriceSource` against a live site |
+| F044 | Real retailer scraper plugin | FF | P1 | L | ☑ | Implement `PriceSource` against a live site |
 | F045 | Per-source enable / disable | FF | P1 | S | ☑ | Toggle sources in `get_default_sources` via config |
 | F046 | Scheduled price-refresh interval | UP+FF | P1 | M | ☑ | Background refresh cadence |
-| F047 | Source rate-limit config | FF | P2 | M | ☐ | Throttle requests per source |
-| F048 | Manual "refresh now" button | UP | P2 | S | ☐ | On-demand re-fetch for a product |
-| F049 | Source health dashboard | FF | P3 | M | ☐ | Show last-success / error per source |
-| F050 | Add custom source via config | FF | P3 | M | ☐ | Register a source without code changes |
+| F047 | Source rate-limit config | FF | P2 | M | ☑ | Throttle requests per source |
+| F048 | Manual "refresh now" button | UP | P2 | S | ☑ | On-demand re-fetch for a product |
+| F049 | Source health dashboard | FF | P3 | M | ☑ | Show last-success / error per source |
+| F050 | Add custom source via config | FF | P3 | M | ☑ | Register a source without code changes |
 
 ## 7. UI/UX, Theming & Accessibility
 
@@ -205,7 +205,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 
 ## Progress
 
-**Overall: 43 / 100 complete.**
+**Overall: 48 / 100 complete.**
 
 | Category | Range | Count | Done |
 |---|---|---|---|
@@ -214,7 +214,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 3. Price History & Analytics | F017–F024 | 8 | 6 |
 | 4. Alerts & Notifications | F025–F034 | 10 | 9 |
 | 5. Accounts & Personalization | F035–F043 | 9 | 9 |
-| 6. Data Sources & Scraping | F044–F050 | 7 | 2 |
+| 6. Data Sources & Scraping | F044–F050 | 7 | 7 |
 | 7. UI/UX, Theming & Accessibility | F051–F060 | 10 | 1 |
 | 8. Internationalization | F061–F065 | 5 | 0 |
 | 9. Sharing & Social | F066–F071 | 6 | 0 |
@@ -223,7 +223,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | 12. Performance & Caching | F085–F088 | 4 | 2 |
 | 13. Security & Privacy | F089–F093 | 5 | 0 |
 | 14. AI & Smart Features | F094–F100 | 7 | 0 |
-| **Total** | **F001–F100** | **100** | **43** |
+| **Total** | **F001–F100** | **100** | **48** |
 
 **Done so far:** F001 (fuzzy search), F003 (category/brand filters),
 F004 (price-range filter), F005 (sort), F006 (pagination),
@@ -237,7 +237,9 @@ F032 (snooze/pause), F033 (recurring alerts), F034 (threshold suggestion),
 F035 (registration/login), F036 (guest mode), F037 (watchlist),
 F038 (default currency), F039 (default language), F040 (default sort),
 F041 (settings page), F042 (GDPR export), F043 (account deletion),
-F045 (per-source enable/disable), F046 (scheduled refresh), F051 (light/dark/system theme),
+F044 (real HTTP source), F045 (per-source enable/disable), F046 (scheduled refresh),
+F047 (source rate-limit), F048 (manual refresh), F049 (source health), F050 (custom sources),
+F051 (light/dark/system theme),
 F082 (log-level config), F083 (Prometheus metrics), F084 (background scheduler),
 F085 (Redis search cache), F086 (cache TTL).
 
