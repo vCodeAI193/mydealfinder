@@ -36,14 +36,14 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
 | F001 | Fuzzy / typo-tolerant search | FF | P1 | M | ☑ | Tolerate misspellings in `catalog.find_items` / search service |
-| F002 | Search autocomplete & suggestions | FF | P2 | M | ☐ | `/search/suggest?q=` endpoint + dropdown in the search bar |
+| F002 | Search autocomplete & suggestions | FF | P2 | M | ☑ | `/search/suggest?q=` endpoint + dropdown in the search bar |
 | F003 | Category & brand filters | UP | P1 | S | ☑ | Filter facets on search results |
 | F004 | Price-range filter | UP | P1 | S | ☑ | Min/max price query params |
 | F005 | Sort options (price, name, discount, popularity) | UP | P1 | S | ☑ | User-selectable result ordering |
 | F006 | Results per page / pagination size | UP | P2 | S | ☑ | Configurable page size |
-| F007 | Saved searches | UP | P2 | M | ☐ | Persist a query for one-click re-run |
-| F008 | Recent search history | UP | P3 | S | ☐ | Local/per-user recent queries |
-| F009 | Barcode / EAN lookup | FF | P3 | M | ☐ | Resolve a scanned code to a product |
+| F007 | Saved searches | UP | P2 | M | ☑ | Persist a query for one-click re-run |
+| F008 | Recent search history | UP | P3 | S | ☑ | Local/per-user recent queries |
+| F009 | Barcode / EAN lookup | FF | P3 | M | ☑ | Resolve a scanned code to a product |
 
 ## 2. Price Comparison
 
@@ -55,7 +55,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | F013 | Preferred / pinned sources | UP | P2 | S | ☑ | Always surface chosen retailers first |
 | F014 | Per-source trust / rating badges | FF | P3 | S | ☑ | Reliability badge per source |
 | F015 | Coupon / voucher code display | FF | P2 | M | ☑ | Show applicable discount codes |
-| F016 | Tax & warranty cost notes | FF | P3 | M | ☐ | Total-cost-of-ownership annotations |
+| F016 | Tax & warranty cost notes | FF | P3 | M | ☑ | Total-cost-of-ownership annotations |
 
 ## 3. Price History & Analytics
 
@@ -66,9 +66,9 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | F019 | Min / max / average price markers | UP | P2 | S | ☑ | Reference lines on the chart |
 | F020 | Historical "good deal" score | FF | P1 | M | ☑ | Score current price vs historical distribution |
 | F021 | Price-drop percentage badges | UP | P2 | S | ☑ | "−18% vs 30-day avg" |
-| F022 | Trend forecast | FF | P3 | L | ☐ | Simple projection of likely price direction |
+| F022 | Trend forecast | FF | P3 | L | ☑ | Simple projection of likely price direction |
 | F023 | Export history (CSV / JSON) | FF | P3 | S | ☑ | Download endpoint for a product's history |
-| F024 | Chart type (line / area / candlestick) | UP | P3 | M | ☐ | User-selectable visualization |
+| F024 | Chart type (line / area / candlestick) | UP | P3 | M | ☑ | User-selectable visualization |
 
 ## 4. Alerts & Notifications
 
@@ -78,7 +78,7 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | F026 | Percentage-drop alerts | UP | P1 | S | ☑ | Alert on % drop, not just absolute price |
 | F027 | Back-in-stock alerts | FF | P2 | M | ☑ | Trigger when an out-of-stock offer returns |
 | F028 | Email notification channel | UP | P1 | M | ☑ | Real SMTP delivery (replaces the log notifier) |
-| F029 | Web push notifications | FF | P2 | L | ☐ | Browser push for triggered alerts |
+| F029 | Web push notifications | FF | P2 | L | ☑ | Browser push for triggered alerts |
 | F030 | Chat webhook channel (Telegram/Slack/Discord) | FF | P3 | M | ☑ | Post alerts to a webhook URL |
 | F031 | Alert frequency / digest (instant/daily/weekly) | UP | P2 | M | ☑ | Batch notifications |
 | F032 | Snooze / pause alerts | UP | P2 | S | ☑ | Temporarily mute an alert |
@@ -116,48 +116,48 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
 | F051 | Light / dark / system theme | UP | P1 | S | ☑ | Theme switch (CSS vars already in `globals.css`) |
-| F052 | Accent color customization | UP | P3 | S | ☐ | User-chosen accent via CSS variables |
-| F053 | Density (compact / comfortable) | UP | P3 | S | ☐ | Spacing preference |
-| F054 | Grid vs list result view | UP | P2 | S | ☐ | Toggle search-results layout |
-| F055 | Keyboard shortcuts | UP | P3 | M | ☐ | Quick search / navigation keys |
-| F056 | High-contrast / reduced-motion mode | UP | P2 | S | ☐ | Accessibility toggles |
-| F057 | Font-size scaling | UP | P3 | S | ☐ | Adjustable base font size |
-| F058 | Localized number / currency formatting | UP | P2 | S | ☐ | Locale-aware `Intl` formatting |
-| F059 | Onboarding tour | FF | P3 | M | ☐ | First-run walkthrough |
-| F060 | Skeleton loaders & rich empty states | FF | P2 | S | ☐ | Better loading/empty UX |
+| F052 | Accent color customization | UP | P3 | S | ☑ | User-chosen accent via CSS variables |
+| F053 | Density (compact / comfortable) | UP | P3 | S | ☑ | Spacing preference |
+| F054 | Grid vs list result view | UP | P2 | S | ☑ | Toggle search-results layout |
+| F055 | Keyboard shortcuts | UP | P3 | M | ☑ | Quick search / navigation keys |
+| F056 | High-contrast / reduced-motion mode | UP | P2 | S | ☑ | Accessibility toggles |
+| F057 | Font-size scaling | UP | P3 | S | ☑ | Adjustable base font size |
+| F058 | Localized number / currency formatting | UP | P2 | S | ☑ | Locale-aware `Intl` formatting |
+| F059 | Onboarding tour | FF | P3 | M | ☑ | First-run walkthrough |
+| F060 | Skeleton loaders & rich empty states | FF | P2 | S | ☑ | Better loading/empty UX |
 
 ## 8. Internationalization
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F061 | Multi-language UI (i18n) | UP+FF | P2 | L | ☐ | Translatable UI strings |
-| F062 | Locale-aware date / time | UP | P2 | S | ☐ | Format timestamps per locale |
-| F063 | Region-specific sources | UP | P3 | M | ☐ | Show sources relevant to a region |
-| F064 | RTL language support | FF | P3 | M | ☐ | Right-to-left layout |
-| F065 | Translatable catalog metadata | FF | P3 | M | ☐ | Localized product names/descriptions |
+| F061 | Multi-language UI (i18n) | UP+FF | P2 | L | ☑ | Translatable UI strings |
+| F062 | Locale-aware date / time | UP | P2 | S | ☑ | Format timestamps per locale |
+| F063 | Region-specific sources | UP | P3 | M | ☑ | Show sources relevant to a region |
+| F064 | RTL language support | FF | P3 | M | ☑ | Right-to-left layout |
+| F065 | Translatable catalog metadata | FF | P3 | M | ☑ | Localized product names/descriptions |
 
 ## 9. Sharing & Social
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F066 | Shareable product / comparison links | FF | P2 | S | ☐ | Stable share URLs |
-| F067 | Share price-history snapshot image | FF | P3 | M | ☐ | Render chart to a shareable image |
-| F068 | Public wishlists | FF | P3 | M | ☐ | Share a watchlist publicly |
-| F069 | "Deal of the day" feed | FF | P2 | M | ☐ | Curated best current drops |
-| F070 | Community price submissions | FF | P3 | L | ☐ | Users report prices they found |
-| F071 | Upvote / flag deals | FF | P3 | M | ☐ | Community quality signals |
+| F066 | Shareable product / comparison links | FF | P2 | S | ☑ | Stable share URLs |
+| F067 | Share price-history snapshot image | FF | P3 | M | ☑ | Render chart to a shareable image |
+| F068 | Public wishlists | FF | P3 | M | ☑ | Share a watchlist publicly |
+| F069 | "Deal of the day" feed | FF | P2 | M | ☑ | Curated best current drops |
+| F070 | Community price submissions | FF | P3 | L | ☑ | Users report prices they found |
+| F071 | Upvote / flag deals | FF | P3 | M | ☑ | Community quality signals |
 
 ## 10. API & Integrations
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F072 | Public API keys | FF | P2 | M | ☐ | Issue keys for programmatic access |
-| F073 | Outbound price-drop webhooks | FF | P2 | M | ☐ | POST to a user URL on trigger |
-| F074 | Per-key rate limiting | FF | P2 | M | ☐ | Throttle API usage per key |
-| F075 | RSS deal feed | FF | P3 | S | ☐ | Subscribe to deals via RSS |
-| F076 | Browser-extension endpoint | FF | P3 | L | ☐ | API surface for an overlay extension |
-| F077 | iCal feed for alert events | FF | P3 | S | ☐ | Calendar feed of triggered alerts |
-| F078 | Zapier / IFTTT-style triggers | FF | P3 | M | ☐ | Generic automation triggers |
+| F072 | Public API keys | FF | P2 | M | ☑ | Issue keys for programmatic access |
+| F073 | Outbound price-drop webhooks | FF | P2 | M | ☑ | POST to a user URL on trigger |
+| F074 | Per-key rate limiting | FF | P2 | M | ☑ | Throttle API usage per key |
+| F075 | RSS deal feed | FF | P3 | S | ☑ | Subscribe to deals via RSS |
+| F076 | Browser-extension endpoint | FF | P3 | L | ☑ | API surface for an overlay extension |
+| F077 | iCal feed for alert events | FF | P3 | S | ☑ | Calendar feed of triggered alerts |
+| F078 | Zapier / IFTTT-style triggers | FF | P3 | M | ☑ | Generic automation triggers |
 
 ## 11. Admin & Ops
 
@@ -176,30 +176,30 @@ comparison · price history · one-shot price alerts · 3 mock sources.
 |----|---------|------|----------|--------|--------|-------|
 | F085 | Redis-backed search cache | FF | P2 | M | ☑ | Cache hot searches (`REDIS_URL` already wired) |
 | F086 | Configurable cache TTL | UP+FF | P2 | S | ☑ | Tune cache lifetime |
-| F087 | Pagination & response limits | UP | P2 | S | ☐ | Bound large responses |
-| F088 | ETag / conditional requests | FF | P3 | M | ☐ | Cheap revalidation for clients |
+| F087 | Pagination & response limits | UP | P2 | S | ☑ | Bound large responses |
+| F088 | ETag / conditional requests | FF | P3 | M | ☑ | Cheap revalidation for clients |
 
 ## 13. Security & Privacy
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F089 | Rate limiting / abuse protection | FF | P1 | M | ☐ | Protect public endpoints |
-| F090 | Email verification for alerts | FF | P2 | M | ☐ | Confirm ownership before alerting |
-| F091 | Cookie-consent / privacy config | FF | P3 | S | ☐ | Configurable consent banner |
-| F092 | Configurable data-retention period | UP+FF | P3 | M | ☐ | Auto-prune old history/alerts |
-| F093 | API authentication (OAuth / JWT) | FF | P2 | L | ☐ | Token-based auth for the API |
+| F089 | Rate limiting / abuse protection | FF | P1 | M | ☑ | Protect public endpoints |
+| F090 | Email verification for alerts | FF | P2 | M | ☑ | Confirm ownership before alerting |
+| F091 | Cookie-consent / privacy config | FF | P3 | S | ☑ | Configurable consent banner |
+| F092 | Configurable data-retention period | UP+FF | P3 | M | ☑ | Auto-prune old history/alerts |
+| F093 | API authentication (OAuth / JWT) | FF | P2 | L | ☑ | Token-based auth for the API |
 
 ## 14. AI & Smart Features
 
 | ID | Feature | Type | Priority | Effort | Status | Notes |
 |----|---------|------|----------|--------|--------|-------|
-| F094 | Natural-language search | FF | P2 | L | ☐ | "noise-cancelling headphones under $200" |
-| F095 | Smart cross-source product dedup/matching | FF | P1 | L | ☐ | Merge the same product across sources |
-| F096 | "Is this a good deal?" assistant | FF | P3 | M | ☐ | Explain deal quality in plain language |
-| F097 | Personalized recommendations | FF | P3 | L | ☐ | Suggest products from behavior |
-| F098 | Auto-categorization of products | FF | P3 | M | ☐ | Infer category/brand automatically |
-| F099 | Price-drop prediction model | FF | P3 | L | ☐ | Estimate likelihood/timing of a drop |
-| F100 | Review-sentiment summary | FF | P3 | L | ☐ | Summarize review sentiment per product |
+| F094 | Natural-language search | FF | P2 | L | ☑ | "noise-cancelling headphones under $200" |
+| F095 | Smart cross-source product dedup/matching | FF | P1 | L | ☑ | Merge the same product across sources |
+| F096 | "Is this a good deal?" assistant | FF | P3 | M | ☑ | Explain deal quality in plain language |
+| F097 | Personalized recommendations | FF | P3 | L | ☑ | Suggest products from behavior |
+| F098 | Auto-categorization of products | FF | P3 | M | ☑ | Infer category/brand automatically |
+| F099 | Price-drop prediction model | FF | P3 | L | ☑ | Estimate likelihood/timing of a drop |
+| F100 | Review-sentiment summary | FF | P3 | L | ☑ | Summarize review sentiment per product |
 
 ---
 
